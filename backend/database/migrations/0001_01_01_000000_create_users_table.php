@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('role')->default('student');
+            $table->boolean('has_accepted_rules')->default(false);
+            $table->boolean('is_blacklisted')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });
