@@ -28,7 +28,7 @@ class AuthController extends Controller
             'account_status' => 'PENDING'
         ]);
         
-        return response -> json([
+        return response() -> json([
             'message' => 'User registered succesfully, Please accept the rules',
             'user' => $user  
         ], 201);
@@ -37,21 +37,26 @@ class AuthController extends Controller
     public function login(Request $request){
         $credentials = $request->only('email', 'password');
 
-        if (!$token = auth()->attempt($credentials)) {
+        if (!auth()->attempt($credentials)) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
 
         $user = auth()->user();
-        if ($user->account_status === 'PENDING') {
-            return response()->json(['error' => 'Account pending onboarding.'], 403);
-        }
 
-        return response()->json(['token' => $token, 'user' => $user], 200);
-
+        $token = $user->createToken('auth_token')->plainTextToken;
+        
+        return response()->json([
+        'token' => $token,
+        'status' => $user->account_status,
+        'message' => $user->account_status === 'PENDING' ? 'Account pending onboarding' : 'Login successful'], 200);
     }
 
     public function onboard(Request $request){
         $user = auth()->user();
+
+        if ($user->account_status === 'ACTIVE') {
+        return response()->json(['message' => 'Account is already onboarded'], 200);
+    }
         if($request-> agreed === true){
             $user->update(['account_status' => 'ACTIVE']);
             return response()->json(['message' => 'Onbording complete'], 200);
