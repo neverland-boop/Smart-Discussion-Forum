@@ -14,8 +14,11 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'username' => 'required|string|max:255',
             'email' => 'required|string|unique:users|email|max:255',
-            'password' => 'required|string|min:8'
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:STUDENT, LECTURER, ADMIN'
         ]);
+
+        $status = ($validator['role'] === 'STUDENT'?'PENDING' : 'ACTIVE');
 
         if($validator->fails()){
             return response()->json($validator->errors(), 422);
@@ -25,7 +28,7 @@ class AuthController extends Controller
             'username' => $request->username,
             'email' => $request ->email,
             'password' => Hash::make($request->password),
-            'account_status' => 'PENDING'
+            'account_status' => $status
         ]);
         
         return response() -> json([
