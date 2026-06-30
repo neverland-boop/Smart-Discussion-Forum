@@ -18,7 +18,10 @@ class AuthController extends Controller
             'role' => 'required|in:STUDENT, LECTURER, ADMIN'
         ]);
 
-        $status = ($validator['role'] === 'STUDENT'?'PENDING' : 'ACTIVE');
+        $role = $request->input('role');
+
+        // Now your logic will work perfectly
+        $status = ($role === 'STUDENT' ? 'PENDING' : 'ACTIVE');
 
         if($validator->fails()){
             return response()->json($validator->errors(), 422);
