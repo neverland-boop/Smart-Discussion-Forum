@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+
+<AnchorPane prefHeight="443.0" prefWidth="705.0" styleClass="decline" stylesheets="@style.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Reg">
+   <children>
+      <HBox layoutX="-1.0" layoutY="-1.0" prefHeight="400.0" prefWidth="600.0">
+         <children>
+            <VBox prefHeight="366.0" prefWidth="312.0">
+               <children>
+                  <Label prefHeight="69.0" prefWidth="202.0" styleClass="big-bold" text="Create an account">
+                     <font>
+                        <Font size="17.0" />
+                     </font>
+                  </Label>
+                  <Label prefHeight="36.0" prefWidth="215.0" text="Join the Smart Discussion Forum" />
+                  <Label prefHeight="17.0" prefWidth="106.0" styleClass="big-bold" text="Full Name">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
+                  <TextField prefHeight="34.0" prefWidth="220.0" />
+                  <Label styleClass="big-bold" text="Email Address">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
+                  <TextField prefHeight="43.0" prefWidth="202.0" />
+                  <Label styleClass="big-bold" text="Password">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
+                  <TextField prefHeight="40.0" prefWidth="202.0" />
+                  <HBox prefHeight="64.0" prefWidth="202.0">
+                     <children>
+                        <Label prefHeight="46.0" prefWidth="145.0" text="Already have an account ?" />
+                        <Hyperlink prefHeight="47.0" prefWidth="63.0" text="Login here">
+                           <font>
+                              <Font size="11.0" />
+                           </font>
+                        </Hyperlink>
+                     </children>
+                  </HBox>
+               </children>
+               <padding>
+                  <Insets left="30.0" right="30.0" top="30.0" />
+               </padding>
+            </VBox>
+            <VBox prefHeight="400.0" prefWidth="387.0">
+               <children>
+                  <VBox alignment="CENTER_LEFT" prefHeight="283.0" prefWidth="338.0" styleClass="platform">
+                     <children>
+                        <Label alignment="TOP_CENTER" prefHeight="33.0" prefWidth="338.0" styleClass="big-bold" text="Platform Rules">
+                           <font>
+                              <Font size="15.0" />
+                           </font>
+                        </Label>
+                        <Label alignment="TOP_LEFT" prefHeight="39.0" prefWidth="347.0" text="Be respectful to all members " />
+                        <Label alignment="TOP_LEFT" prefHeight="38.0" prefWidth="347.0" text="No spam or irrelevant content" />
+                        <Label alignment="TOP_LEFT" prefHeight="41.0" prefWidth="347.0" text="Use the platform for academic discussions" />
+                        <Label alignment="TOP_LEFT" prefHeight="31.0" prefWidth="347.0" text="Violation may lead to warnings  or bans" />
+                     </children>
+                     <padding>
+                        <Insets left="30.0" right="10.0" top="10.0" />
+                     </padding>
+                  </VBox>
+                  <CheckBox fx:id="rulesCheckbox" mnemonicParsing="false" prefHeight="47.0" prefWidth="338.0" styleClass="big-bold" text="I agree to the platform rules and terms" />
+                  <Button mnemonicParsing="false" onAction="#handleRegisterAction" prefHeight="33.0" prefWidth="345.0" text="Register" />
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+      <HBox layoutX="-1.0" layoutY="-1.0" prefHeight="17.0" prefWidth="705.0">
+         <children>
+            <VBox prefHeight="41.0" prefWidth="712.0" styleClass="top-banner">
+               <children>
+                  <Label prefHeight="27.0" prefWidth="202.0" text="Smart Discussion Forum" textFill="WHITE">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+                  <Label prefHeight="17.0" prefWidth="218.0" text="Share Learn Grow Together" textFill="WHITE" />
+               </children>
+            </VBox>
+         </children>
+      </HBox>
+   </children>
+</AnchorPane>
