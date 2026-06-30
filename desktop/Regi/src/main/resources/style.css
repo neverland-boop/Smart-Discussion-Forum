@@ -32,3 +32,20 @@
     -fx-focus-color: transparent;
 
 }
+.password-merge{
+    -fx-background-color: white;
+    -fx-border-color: #cccccc;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-alignment: center-left;
+    -fx-padding: 0 5 0 0 ;
+
+}
+
+.p{
+    -fx-background-color: transparent;
+}
+.eye{
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}

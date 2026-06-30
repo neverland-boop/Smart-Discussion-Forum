@@ -5,12 +5,13 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-
 
 <AnchorPane prefHeight="443.0" prefWidth="705.0" styleClass="decline" stylesheets="@style.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Reg">
    <children>
@@ -29,19 +30,35 @@
                         <Font size="13.0" />
                      </font>
                   </Label>
-                  <TextField prefHeight="34.0" prefWidth="220.0" />
+                  <TextField prefHeight="42.0" prefWidth="202.0" />
                   <Label styleClass="big-bold" text="Email Address">
                      <font>
                         <Font size="13.0" />
                      </font>
                   </Label>
-                  <TextField prefHeight="43.0" prefWidth="202.0" />
+                  <TextField prefHeight="37.0" prefWidth="202.0" />
                   <Label styleClass="big-bold" text="Password">
                      <font>
                         <Font size="13.0" />
                      </font>
                   </Label>
-                  <TextField prefHeight="40.0" prefWidth="202.0" />
+                  <HBox prefHeight="42.0" prefWidth="202.0" styleClass="password-merge" stylesheets="@style.css">
+                     <children>
+                        <PasswordField fx:id="passwordField" prefHeight="31.0" prefWidth="105.0" styleClass="p" stylesheets="@style.css" HBox.hgrow="ALWAYS" />
+                        <TextField fx:id="passwordTextField" prefHeight="25.0" prefWidth="70.0" styleClass="p" stylesheets="@style.css" visible="false" HBox.hgrow="ALWAYS" />
+                        <ToggleButton fx:id="eyeToggle" mnemonicParsing="false" onAction="#togglePasswordVisibility" prefHeight="31.0" prefWidth="44.0" styleClass="eye" stylesheets="@style.css" text="👁">
+                           <font>
+                              <Font size="15.0" />
+                           </font>
+                        </ToggleButton>
+                     </children>
+                  </HBox>
+                  <Label prefHeight="17.0" prefWidth="130.0" styleClass="big-bold" text="Confirm Password">
+                     <font>
+                        <Font size="13.0" />
+                     </font>
+                  </Label>
+                  <PasswordField prefHeight="39.0" prefWidth="202.0" />
                   <HBox prefHeight="64.0" prefWidth="202.0">
                      <children>
                         <Label prefHeight="46.0" prefWidth="145.0" text="Already have an account ?" />

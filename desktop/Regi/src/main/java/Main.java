@@ -8,7 +8,7 @@ import javafx.stage.Stage;
 
         @Override
         public void start(Stage primaryStage) throws Exception {
-            // Pointing directly to your registration.fxml layout file
+
             Parent root = FXMLLoader.load(getClass().getResource("/registration.fxml"));
             primaryStage.setTitle("Smart Discussion Forum");
             primaryStage.setScene(new Scene(root));
@@ -16,6 +16,7 @@ import javafx.stage.Stage;
         }
 
         public static void main(String[] args) {
+
             launch(args);
         }
     }

@@ -7,46 +7,43 @@ import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 import javafx.stage.Stage;
 import java.io.IOException;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+
 
 public class Reg {
 
-    @FXML
-    private CheckBox rulesCheckbox;
+    @FXML private CheckBox rulesCheckbox;
 
-    /**
-     * Triggered when the green 'Register' button is clicked.
-     */
-    @FXML
-    private void handleRegisterAction(ActionEvent event) {
-        // If the user ticked the box, let them through!
+    @FXML private ToggleButton eyeToggle;
+    @FXML private PasswordField passwordField;
+    @FXML private TextField passwordTextField;
+    @FXML private PasswordField confirmPasswordField;
+
+    @FXML private void handleRegisterAction(ActionEvent event) {
+
         if (rulesCheckbox.isSelected()) {
             System.out.println("Success! . Account created.");
-            // Optional: loadScreen(event, "/resources/dashboard.fxml");
+
         }
-        // If they DID NOT tick the box, they are automatically declined!
         else {
             loadScreen(event, "/declined.fxml");
         }
     }
 
-
-    /**
-     * Triggered when clicking 'Return to LogIn' from your second screen.
-     */
-    @FXML
-    private void handleReturnToLogin(ActionEvent event) {
-        loadScreen(event, "/registration.fxml"); // Routes back to the signup sheet
+    @FXML private void handleReturnToLogin(ActionEvent event) {
+        loadScreen(event, "/registration.fxml");
     }
-    @FXML
-    public void handleReturnToRegister(ActionEvent event) {
+    @FXML public void handleReturnToRegister(ActionEvent event) {
         try {
-            // 1. Load the registration layout file
+
             Parent registerRoot = FXMLLoader.load(getClass().getResource("/registration.fxml"));
 
-            // 2. Get the current active window (Stage)
+
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
-            // 3. Swap the scene back to the registration view
+            //  Swap the scene back to the registration view
             stage.setScene(new Scene(registerRoot));
             stage.show();
 
@@ -56,9 +53,6 @@ public class Reg {
         }
     }
 
-    /**
-     * Helper method to seamlessly flip between your FXML screens
-     */
     private void loadScreen(ActionEvent event, String fxmlPath) {
         try {
             Parent root = FXMLLoader.load(getClass().getResource(fxmlPath));
@@ -70,6 +64,27 @@ public class Reg {
         } catch (IOException e) {
             System.err.println("Error: Layout file missing at " + fxmlPath);
             e.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void togglePasswordVisibility(ActionEvent event) {
+        if (eyeToggle.isSelected()) {
+            // Copy masked characters to the plain text field and show it
+            passwordTextField.setText(passwordField.getText());
+            passwordTextField.setVisible(true);
+            passwordTextField.setManaged(true);
+
+            passwordField.setVisible(false);
+            passwordField.setManaged(false);
+        } else {
+            // Copy plain text back to the masked field and show it
+            passwordField.setText(passwordTextField.getText());
+            passwordField.setVisible(true);
+            passwordField.setManaged(true);
+
+            passwordTextField.setVisible(false);
+            passwordTextField.setManaged(false);
         }
     }
 }
