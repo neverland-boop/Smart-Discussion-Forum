@@ -32,6 +32,7 @@ return new class extends Migration
             $table->string('description');
             $table->foreignId('group_id')->constrained('groups')->onDelete('cascade');
             $table->integer('post_count')->default(0);
+            $table->boolean('is_locked')->default(true);
             $table->timestamps();
         });
 

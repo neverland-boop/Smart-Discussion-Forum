@@ -13,4 +13,16 @@ class Topic extends Model
     public function posts() {
         return $this->hasMany(Post::class);
     }
+
+    protected $fillable = [
+    description,
+    group_id,
+    is_locked
+    ];
+
+    protected $casts = [
+        'is_locked' => 'boolean'
+    ];
 }
+
+

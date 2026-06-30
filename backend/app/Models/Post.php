@@ -13,4 +13,11 @@ class Post extends Model
     public function user(){
         return $this->belongsTo(User::class);
     }
+
+    protected $fillable = [
+        group_id,
+        author_id,
+        content,
+        creator_id
+    ];
 }
