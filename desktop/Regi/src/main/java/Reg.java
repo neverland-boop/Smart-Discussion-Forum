@@ -33,6 +33,7 @@ public class Reg {
     }
 
     @FXML private void handleReturnToLogin(ActionEvent event) {
+
         loadScreen(event, "/registration.fxml");
     }
     @FXML public void handleReturnToRegister(ActionEvent event) {
