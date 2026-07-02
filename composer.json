@@ -11,13 +11,18 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.0",
-        "livewire/volt": "^1.6.7"
+        "livewire/livewire": "^3.6.4",
+        "livewire/volt": "^1.7.0",
+        "spatie/laravel-permission": "^6.25",
+        "tymon/jwt-auth": "^2.3"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "laravel/boost": "^2.2",
+        "laravel/breeze": "^2.4",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.18",
         "laravel/sail": "^1.41",
