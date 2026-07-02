@@ -30,13 +30,13 @@
                         <Font size="13.0" />
                      </font>
                   </Label>
-                  <TextField prefHeight="42.0" prefWidth="202.0" />
+                  <TextField fx:id="fullNameTextField" prefHeight="42.0" prefWidth="202.0" />
                   <Label styleClass="big-bold" text="Email Address">
                      <font>
                         <Font size="13.0" />
                      </font>
                   </Label>
-                  <TextField prefHeight="37.0" prefWidth="202.0" />
+                  <TextField fx:id="emailTextField" prefHeight="37.0" prefWidth="202.0" />
                   <Label styleClass="big-bold" text="Password">
                      <font>
                         <Font size="13.0" />

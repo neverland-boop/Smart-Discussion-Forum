@@ -20,20 +20,40 @@ public class Reg {
     @FXML private PasswordField passwordField;
     @FXML private TextField passwordTextField;
     @FXML private PasswordField confirmPasswordField;
+    @FXML private TextField emailTextField;
+    @FXML private TextField fullNameTextField;
+
 
     @FXML private void handleRegisterAction(ActionEvent event) {
+        String fullName = fullNameTextField.getText(); // Make sure this fx:id exists!
+        String email = emailTextField.getText();
+        String password = passwordField.getText();
+        String confirmPassword = confirmPasswordField.getText();
 
-        if (rulesCheckbox.isSelected()) {
-            System.out.println("Success! . Account created.");
-
+        if (!password.equals(confirmPassword)) {
+            System.out.println("Error: Passwords do not match!");
+            return;
         }
-        else {
+
+        // 3. Send the data to your backend class
+        boolean isSuccess = BackendSe.saveUserToDatabase(fullName, email, password, confirmPassword);
+
+        if (isSuccess) {
+            System.out.println("Success! Account created in the database.");
+
+            // token generation logic
+            String userToken = java.util.UUID.randomUUID().toString();
+            java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(Reg.class);
+            prefs.put("auth_token", userToken);
+            prefs.put("logged_in_user", email);
+
+        } else {
+            System.out.println("Registration failed");
             loadScreen(event, "/declined.fxml");
         }
     }
 
     @FXML private void handleReturnToLogin(ActionEvent event) {
-
         loadScreen(event, "/registration.fxml");
     }
     @FXML public void handleReturnToRegister(ActionEvent event) {
@@ -87,5 +107,16 @@ public class Reg {
             passwordTextField.setVisible(false);
             passwordTextField.setManaged(false);
         }
+    }
+
+    public void handleLogout() {
+        // Access the storage node
+        java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userNodeForPackage(Reg.class);
+
+        // Clear out the saved token data
+        prefs.remove("auth_token");
+        prefs.remove("logged_in_user");
+
+        System.out.println("Local authentication tokens cleared successfully.");
     }
 }
