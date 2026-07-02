@@ -1,0 +1,51 @@
+.left-panel{
+    -fx-background-color: white;
+}
+.platform{
+    -fx-background-color: #b4eccf;
+    -fx-background-radius: 12;
+    -fx-border-color: #9ad89a;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.top-banner{
+    -fx-background-color: #2b552b;
+    -fx-text-fill: white;
+}
+.button{
+    -fx-background-color: #198754;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20 10 20 ;
+    -fx-cursor: hand;
+
+}
+.bb:hover {
+    -fx-background-color: green;
+}
+.big-bold {
+    -fx-font-weight: bold;
+}
+.hyperlink, .hyperlink:focus, .hyperlink:active, .hyperlink:visited{
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+
+}
+.password-merge{
+    -fx-background-color: white;
+    -fx-border-color: #cccccc;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-alignment: center-left;
+    -fx-padding: 0 5 0 0 ;
+
+}
+
+.p{
+    -fx-background-color: transparent;
+}
+.eye{
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
