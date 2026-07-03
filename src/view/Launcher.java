@@ -1,3 +1,4 @@
+package view;
 import java.util.prefs.Preferences;
 
 public class Launcher {
