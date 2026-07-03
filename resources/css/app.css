@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "tailwindcss";
+
+/* FORCE TAILWIND V4 TO MAP YOUR LIVEWIRE COMPONENT PATHS */
+@source "../views/**/*.blade.php";
+@source "../views/livewire/**/*.blade.php";
+@source "./**/*.blade.php";
