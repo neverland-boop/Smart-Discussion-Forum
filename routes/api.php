@@ -1,5 +1,7 @@
 <?php
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\QuizController;
+use App\Http\Controllers\Api\TopicController;
 use Illuminate\Support\Facades\Route;
 
 // FOR THE JAVA TEAM: base URL is {APP_URL}/api
@@ -24,4 +26,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout']);
 
+});
+
+Route::middleware('auth:sanctum')->group(function(){
+    Route::apiResource('/quizzes', QuizController::class);
+    Route::apiResource('/topics', TopicController::class);
+
+    Route::post('/quizzes/{quiz}/attempt', [QuizController::class, 'submitAttempt']
+    );
 });

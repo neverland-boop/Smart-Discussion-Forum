@@ -16,7 +16,8 @@ return new class extends Migration
         $table->string('title');
         $table->text('description');
         $table->foreignId('group_id')->constrained()->onDelete('cascade');
-        $table->foreignId('user_id')->constrained(); // This is your 'originalPoster'
+        $table->foreignId('user_id')->constrained();
+        $table->string('classification')->nullable();
         $table->integer('post_count')->default(0);
         $table->timestamps();
     });
