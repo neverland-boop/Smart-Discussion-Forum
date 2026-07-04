@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-    Schema::create('groups', function (Blueprint $table) {
-        $table->id(); // creates 'id'
-        $table->string('name');
-        $table->foreignId('user_id')->constrained(); // Automatically looks for 'users' table
-        $table->timestamps();
-    });
+        Schema::create('quiz_attempts', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -24,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('groups');
+        Schema::dropIfExists('quiz_attempts');
     }
 };

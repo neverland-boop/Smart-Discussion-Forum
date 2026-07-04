@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-    Schema::create('posts', function (Blueprint $table) {
+    Schema::create('blacklists', function (Blueprint $table) {
         $table->id();
-        $table->foreignId('topic_id')->constrained()->onDelete('cascade'); 
-        $table->foreignId('user_id')->constrained();
-        $table->text('content');
+        $table->foreignId('user_id')->constrained(); // The student being watched/banned
+        $table->integer('warning_count')->default(0);
+        $table->string('status')->default('ACTIVE'); // e.g., 'ACTIVE', 'SUSPENDED'
+        $table->dateTime('expiry_date')->nullable();
         $table->timestamps();
     });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('posts');
+        Schema::dropIfExists('blacklists');
     }
 };
