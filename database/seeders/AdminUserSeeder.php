@@ -14,7 +14,7 @@ class AdminUserSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['email' => 'admin@smartforum.com'], // Unique identifier
             [
-                'name' => 'System Administrator',
+                'name' => 'Administrator',
                 'password' => Hash::make('Administrator'), // Change this!
                 'agreed_to_rules' => true,
                 'status' => 'active'
