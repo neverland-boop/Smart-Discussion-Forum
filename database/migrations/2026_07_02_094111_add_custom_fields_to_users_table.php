@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->boolean('agreed_to_rules')->default(false);
-            $table->string('status')->default('active'); // active, blacklisted (Requirement #4)
+            $table->string('status')->default('active'); // active, blacklisted
         });
     }
 

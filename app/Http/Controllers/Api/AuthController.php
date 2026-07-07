@@ -71,18 +71,12 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'agreed_to_rules' => 'required|boolean|accepted',
-            'secret_code' => 'required|string', // The extra requirement!
         ]);
 
-        // 2. Check if the code is correct
-        if ($validated['secret_code'] !== env('LECTURER_SECRET_CODE')) {
-            return response()->json(['error' => 'Invalid Lecturer Registration Code.'], 403);
-        }
-
-        // 3. Use the exact same service, but pass the 'lecturer' role
+        // 2. Use the exact same service, but pass the 'lecturer' role
         $user = $registrationService->registerUser($validated, 'lecturer');
 
-        // 4. Log them in and return the Sanctum token
+        // 3. Log them in and return the Sanctum token
         $token = $user->createToken('java-client')->plainTextToken;
 
         return $this->respondWithToken($token, $user);

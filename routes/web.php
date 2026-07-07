@@ -7,6 +7,7 @@ use Livewire\Volt\Volt;
 Route::view('/', 'welcome');
 
 Volt::route('register/lecturer', 'pages.auth.register-lecturer')
+    ->middleware(['auth', 'role:admin']) 
     ->name('register.lecturer');
 
 Route::view('dashboard', 'dashboard')

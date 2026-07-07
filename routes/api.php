@@ -1,37 +1,48 @@
 <?php
+
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\QuizController;
+use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\TopicController;
+use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\QuizController;
+use App\Http\Controllers\Api\QuizAttemptController;
 use Illuminate\Support\Facades\Route;
 
-// FOR THE JAVA TEAM: base URL is {APP_URL}/api
-// Throttled to prevent brute-force login/registration attempts.
-Route::middleware('throttle:10,1')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/register/lecturer', [AuthController::class, 'registerLecturer']);
-    Route::post('/login', [AuthController::class, 'login']);
-});
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', function () {
-        $user = auth()->user();
-        return response()->json([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            // Spatie roles access
-            'roles' => $user->getRoleNames(), 
-        ]);
+// Public Authentication Routes
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+
+// Protected Routes
+Route::middleware(['auth:sanctum'])->group(function () {
+
+    // --- Administrator Only Routes (Using Spatie Role Middleware) ---
+    Route::middleware(['role:admin'])->prefix('admin')->group(function () {
+        Route::post('/register-lecturer', [AuthController::class, 'registerLecturer']);
+        Route::get('/groups', [GroupController::class, 'index']); // Admin can view all groups
+        Route::post('/groups', [GroupController::class, 'store']);
     });
 
-Route::post('/logout', [AuthController::class, 'logout']);
+    // --- General Authenticated Routes (Students, Lecturers, Admins) ---
+    
+    // Group & Topic Management
+    Route::get('/groups/{group}/topics', [TopicController::class, 'index']);
+    Route::post('/groups/{group}/topics', [TopicController::class, 'store']);
 
-});
+    // Forum/Thread Communication
+    Route::get('/topics/{topic}/posts', [PostController::class, 'index']);
+    Route::post('/topics/{topic}/posts', [PostController::class, 'store']);
 
-Route::middleware('auth:sanctum')->group(function(){
-    Route::apiResource('/quizzes', QuizController::class);
-    Route::apiResource('/topics', TopicController::class);
+    // Quiz Management
+    // Only Lecturers/Admins should ideally access store, but this is base access
+    Route::middleware(['role:lecturer|admin'])->group(function () {
+        Route::post('/groups/{group}/quizzes', [QuizController::class, 'store']);
+        Route::get('/quizzes/{quiz}/report', [QuizController::class, 'report']);
+    });
 
-    Route::post('/quizzes/{quiz}/attempt', [QuizController::class, 'submitAttempt']
-    );
+    // Quiz Participation (Students)
+    Route::post('/attempts/{attempt}/submit', [QuizAttemptController::class, 'submit']);
+
+    // Logout
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
