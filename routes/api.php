@@ -17,8 +17,8 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware(['auth:sanctum'])->group(function () {
 
     // --- Administrator Only Routes (Using Spatie Role Middleware) ---
-    Route::middleware(['role:admin'])->group(function () {
-        Route::post('/admin/register-lecturer', [AuthController::class, 'registerLecturer']);
+    Route::middleware(['role:admin'])->prefix('admin')->group(function () {
+        Route::post('/register-lecturer', [AuthController::class, 'registerLecturer']);
         Route::get('/groups', [GroupController::class, 'index']); // Admin can view all groups
         Route::post('/groups', [GroupController::class, 'store']);
     });
