@@ -28,6 +28,10 @@ class RegistrationService
             'agreed_to_rules' => true,
         ]);
 
+        if (!$user->save()) {
+        throw new \Exception("Failed to save user to database.");
+    }
+
         // 2. Assign the role (Requires Spatie/Laravel-Permission)
         $user->assignRole($role);
 

@@ -11,7 +11,6 @@ new #[Layout('layouts.guest')] class extends Component {
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
-    public string $secret_code = ''; // The special field
     public bool $agreed_to_rules = false;
 
     public function register(RegistrationService $service) {
@@ -20,18 +19,10 @@ new #[Layout('layouts.guest')] class extends Component {
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
             'agreed_to_rules' => ['accepted'],
-            'secret_code' => ['required', 'string'],
         ]);
-
-        // Security Check
-        if ($validated['secret_code'] !== env('LECTURER_SECRET_CODE')) {
-            $this->addError('secret_code', 'Invalid registration code.');
-            return;
-        }
 
         $user = $service->registerUser($validated, 'lecturer');
         event(new Registered($user));
-        Auth::login($user);
         $this->redirect(route('dashboard', absolute: false), navigate: true);
     }
 }; ?>
@@ -56,18 +47,27 @@ new #[Layout('layouts.guest')] class extends Component {
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />
             <x-text-input wire:model="password" id="password" class="block mt-1 w-full" type="password" name="password" required />
+            <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Secret Code -->
+        <!-- Confirm Password -->
         <div class="mt-4">
-            <x-input-label for="secret_code" :value="__('Lecturer Registration Code')" />
-            <x-text-input wire:model="secret_code" id="secret_code" class="block mt-1 w-full" type="password" required />
-            <x-input-error :messages="$errors->get('secret_code')" class="mt-2" />
+            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+            <x-text-input wire:model="password_confirmation" id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required />
+            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        </div>
+
+        <!-- Agree to Rules -->
+        <div class="mt-4 flex items-center">
+            <input wire:model="agreed_to_rules" id="agreed_to_rules" type="checkbox" name="agreed_to_rules" class="rounded border-gray-300 text-indigo-600 shadow-sm" />
+            <label for="agreed_to_rules" class="ml-2 text-sm text-gray-600">
+                {{ __('I confirm this lecturer has agreed to the platform rules.') }}
+            </label>
+            <x-input-error :messages="$errors->get('agreed_to_rules')" class="mt-2" />
         </div>
 
         <div class="flex items-center justify-end mt-4">
-            <a href="{{ route('register.lecturer') }}" wire:navigate>
-            <x-primary-button>
+            <x-primary-button type="submit">
                 {{ __('Register as Lecturer') }}
             </x-primary-button>
         </div>

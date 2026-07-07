@@ -71,7 +71,6 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'agreed_to_rules' => 'required|boolean|accepted',
-            'secret_code' => 'required|string', // The extra requirement!
         ]);
 
         // 2. Use the exact same service, but pass the 'lecturer' role
