@@ -15,5 +15,9 @@ class Group extends Model
     public function topics() {
         return $this->hasMany(Topic::class);
     }
+
+    public function members() {
+    return $this->belongsToMany(User::class, 'group_members');
+}
 }
 

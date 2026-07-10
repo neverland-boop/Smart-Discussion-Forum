@@ -76,4 +76,8 @@ class User extends Authenticatable implements JWTSubject // MustVerifyEmail
             'permissions' => $this->getAllPermissions()->pluck('name'),
         ];
     }
+
+    public function groups() {
+    return $this->belongsToMany(Group::class, 'group_members');
+}
 }

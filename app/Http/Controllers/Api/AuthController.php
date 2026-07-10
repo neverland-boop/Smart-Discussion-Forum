@@ -81,4 +81,5 @@ class AuthController extends Controller
 
         return $this->respondWithToken($token, $user);
     }
+    
 }

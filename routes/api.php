@@ -42,7 +42,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Quiz Participation (Students)
     Route::post('/attempts/{attempt}/submit', [QuizAttemptController::class, 'submit']);
-
-    // Logout
+    
     Route::post('/logout', [AuthController::class, 'logout']);
 });

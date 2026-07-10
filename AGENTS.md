@@ -12,7 +12,9 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - php - 8.2
 - laravel/framework (LARAVEL) - v12
 - laravel/prompts (PROMPTS) - v0
+- laravel/reverb (REVERB) - v1
 - laravel/sanctum (SANCTUM) - v4
+- laravel/telescope (TELESCOPE) - v5
 - livewire/flux (FLUXUI_FREE) - v2
 - livewire/livewire (LIVEWIRE) - v3
 - livewire/volt (VOLT) - v1

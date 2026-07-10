@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 class Topic extends Model
 {
     protected $fillable = [
-        'title', 'description', 'group_id', 'user_id', 
-        'post_count', 'classification'
+        'title', 'description', 'group_id', 'user_id', 'classification'
     ];
 
     public function group() {
