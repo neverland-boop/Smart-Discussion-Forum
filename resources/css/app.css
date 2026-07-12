@@ -10,6 +10,7 @@
 @tailwind components;
 @tailwind utilities;
 @import "tailwindcss";
+@import "./theme.css";
 
 /* FORCE TAILWIND V4 TO MAP YOUR LIVEWIRE COMPONENT PATHS */
 @source "../views/**/*.blade.php";

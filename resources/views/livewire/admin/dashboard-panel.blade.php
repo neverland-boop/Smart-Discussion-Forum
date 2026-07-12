@@ -25,7 +25,7 @@ new class extends Component {
     <h2 class="text-2xl font-bold mb-6 text-white border-b border-slate-800 pb-4">Group Statistics</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         @foreach($groupStats as $group)
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 hover:border-purple-500 transition">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 hover:border-green-500 transition">
             <h3 class="text-lg font-bold text-white mb-2">{{ $group['name'] }}</h3>
             <div class="space-y-2 mt-4">
                 <div class="flex justify-between text-sm">
@@ -74,7 +74,7 @@ new class extends Component {
                         @if($user['status'] === 'Blacklisted')
                             <button class="text-emerald-400 hover:text-emerald-300 font-semibold">Lift Ban</button>
                         @else
-                            <button class="text-purple-400 hover:text-purple-300 font-semibold">Issue Warning</button>
+                            <button class="text-green-400 hover:text-green-300 font-semibold">Issue Warning</button>
                         @endif
                     </td>
                 </tr>

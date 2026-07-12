@@ -59,7 +59,7 @@ new #[Layout('layouts.guest')] class extends Component {
 
         <!-- Agree to Rules -->
         <div class="mt-4 flex items-center">
-            <input wire:model="agreed_to_rules" id="agreed_to_rules" type="checkbox" name="agreed_to_rules" class="rounded border-gray-300 text-indigo-600 shadow-sm" />
+            <input wire:model="agreed_to_rules" id="agreed_to_rules" type="checkbox" name="agreed_to_rules" class="rounded border-gray-300 text-green-600 shadow-sm" />
             <label for="agreed_to_rules" class="ml-2 text-sm text-gray-600">
                 {{ __('I confirm this lecturer has agreed to the platform rules.') }}
             </label>

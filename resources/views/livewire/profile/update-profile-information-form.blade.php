@@ -107,8 +107,8 @@ $sendVerification = function () {
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-md file:border-0
                     file:text-sm file:font-semibold
-                    file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-900 dark:file:text-indigo-300
-                    hover:file:bg-indigo-100 dark:hover:file:bg-indigo-800 cursor-pointer transition
+                    file:bg-green-50 file:text-green-700 dark:file:bg-green-900 dark:file:text-green-300
+                    hover:file:bg-green-100 dark:hover:file:bg-green-800 cursor-pointer transition
                 " />
             </div>
             <x-input-error class="mt-2" :messages="$errors->get('newAvatar')" />
@@ -131,7 +131,7 @@ $sendVerification = function () {
                     <p class="text-sm mt-2 text-gray-800 dark:text-gray-200">
                         {{ __('Your email address is unverified.') }}
 
-                        <button wire:click.prevent="sendVerification" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
+                        <button wire:click.prevent="sendVerification" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800">
                             {{ __('Click here to re-send the verification email.') }}
                         </button>
                     </p>
@@ -149,7 +149,7 @@ $sendVerification = function () {
         <div>
             <x-input-label for="bio" :value="__('Bio')" />
             <!-- Using standard Tailwind classes that perfectly match Breeze's x-text-input -->
-            <textarea wire:model="bio" id="bio" name="bio" rows="3" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"></textarea>
+            <textarea wire:model="bio" id="bio" name="bio" rows="3" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-green-500 dark:focus:border-green-600 focus:ring-green-500 dark:focus:ring-green-600 rounded-md shadow-sm"></textarea>
             <x-input-error class="mt-2" :messages="$errors->get('bio')" />
         </div>
 

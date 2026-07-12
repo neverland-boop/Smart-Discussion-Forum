@@ -24,7 +24,7 @@ new class extends Component {
         <div class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-2xl p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-white">Quiz Management</h2>
-                <button class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold py-2 px-4 rounded-lg transition shadow-lg text-sm">
+                <button class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-2 px-4 rounded-lg transition shadow-lg text-sm">
                     + Configure New Quiz
                 </button>
             </div>
@@ -83,8 +83,8 @@ new class extends Component {
                         </span>
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <input type="number" placeholder="/ 10" class="w-20 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-right outline-none focus:border-purple-500">
-                        <button class="ml-2 text-purple-400 hover:text-purple-300 font-semibold">Save</button>
+                        <input type="number" placeholder="/ 10" class="w-20 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-white text-right outline-none focus:border-green-500">
+                        <button class="ml-2 text-green-400 hover:text-green-300 font-semibold">Save</button>
                     </td>
                 </tr>
                 @endforeach

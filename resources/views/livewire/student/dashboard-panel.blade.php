@@ -18,13 +18,13 @@ new class extends Component {
     }
 }; ?>
 
-<div class="max-w-7xl mx-auto space-y-6">
+<!-- ADDED p-6 lg:p-8 HERE to push content away from the edges -->
+<div class="max-w-7xl mx-auto space-y-6 p-6 lg:p-8">
     
-    <!-- Functional Page Header (No Fluff) -->
-    
+    <!-- Functional Page Header -->
     <div class="flex items-center justify-between">
         <h1 class="text-xl font-bold text-white tracking-tight">Dashboard Overview</h1>
-        <a href="{{ route('forums') }}" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition shadow-sm flex items-center gap-2">
+        <a href="{{ route('forums') ?? '#' }}" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-medium rounded-lg transition shadow-sm flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Join a Group
         </a>
@@ -45,7 +45,7 @@ new class extends Component {
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col justify-between">
             <div class="flex justify-between items-start">
                 <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Pending Quizzes</p>
-                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
             </div>
             <h3 class="text-2xl font-bold text-white mt-2">{{ $stats['quizzes_due'] }}</h3>
         </div>
@@ -58,7 +58,7 @@ new class extends Component {
             </div>
             <h3 class="text-2xl font-bold text-white mt-2">{{ $stats['avg_score'] }}</h3>
         </div>
-
+        
         <!-- Card 4 -->
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col justify-between">
             <div class="flex justify-between items-start">
@@ -91,7 +91,7 @@ new class extends Component {
                                     <span>{{ $group['members'] }} members</span>
                                     @if($group['new_msgs'] > 0)
                                         <span>•</span>
-                                        <span class="text-purple-400 font-medium">{{ $group['new_msgs'] }} new</span>
+                                        <span class="text-green-400 font-medium">{{ $group['new_msgs'] }} new</span>
                                     @endif
                                 </div>
                             </div>
@@ -100,7 +100,7 @@ new class extends Component {
                 @empty
                     <!-- Subtle Zero Data State -->
                     <div class="flex items-center justify-center h-24 border border-dashed border-slate-600 rounded-lg bg-slate-800/30">
-                        <p class="text-sm text-slate-500">No active groups. <a href="{{ route('forums') }}" class="text-purple-400 hover:text-purple-300 font-medium ml-1">Browse groups →</a></p>
+                        <p class="text-sm text-slate-500">No active groups. <a href="{{ route('forums') ?? '#' }}" class="text-green-400 hover:text-green-300 font-medium ml-1">Browse groups →</a></p>
                     </div>
                 @endforelse
             </div>

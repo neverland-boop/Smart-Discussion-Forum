@@ -94,7 +94,7 @@ new class extends Component {
 
                         <div>
                             <label for="newGroupName" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Group Name <span class="text-red-500">*</span></label>
-                            <input type="text" id="newGroupName" wire:model="newGroupName" placeholder="e.g., Advanced Database Systems" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition">
+                            <input type="text" id="newGroupName" wire:model="newGroupName" placeholder="e.g., Advanced Database Systems" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition">
                             @error('newGroupName') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
@@ -103,14 +103,14 @@ new class extends Component {
                             <p class="text-[11px] text-slate-500 mb-2">Every group needs at least one topic to start discussions.</p>
                             <div class="relative">
                                 <span class="absolute left-3 top-2.5 text-slate-500 font-bold">#</span>
-                                <input type="text" id="newGroupTopic" wire:model="newGroupTopic" placeholder="e.g., Normalization Formats" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition">
+                                <input type="text" id="newGroupTopic" wire:model="newGroupTopic" placeholder="e.g., Normalization Formats" class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition">
                             </div>
                             @error('newGroupTopic') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
                         </div>
 
                         <div>
                             <label for="newTopicDescription" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Description<span class="text-red-500">*</span></label>
-                            <textarea id="newTopicDescription" wire:model="newTopicDescription" rows="2" placeholder="What is the topic about?" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition resize-none"></textarea>
+                            <textarea id="newTopicDescription" wire:model="newTopicDescription" rows="2" placeholder="What is the topic about?" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition resize-none"></textarea>
                             <!-- FIXED: Added missing error handler -->
                             @error('newTopicDescription') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror 
                         </div>
@@ -121,7 +121,7 @@ new class extends Component {
                         <button type="button" wire:click="closeModal" class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition">
                             Cancel
                         </button>
-                        <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 text-sm font-medium bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition shadow-md">
+                        <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 text-sm font-medium bg-green-600 hover:bg-green-500 text-white rounded-lg transition shadow-md">
                             <span wire:loading wire:target="createGroup">Saving...</span>
                             <span wire:loading.remove wire:target="createGroup">Create</span>
                         </button>

@@ -29,5 +29,13 @@ Volt::route('forums', 'student.chat-interface')
     // Add 'role:student' here to block admins and lecturers
     ->middleware(['auth', 'verified', 'role:student']) 
     ->name('forums');
+    
+Volt::route('quizzes', 'student.quiz-dashboard')
+    ->middleware(['auth', 'verified', 'role:student'])
+    ->name('quizzes');
+
+Volt::route('quizzes/{id}/attempt', 'student.quiz-attempt')
+    ->middleware(['auth', 'verified', 'role:student'])
+    ->name('quiz.attempt');
 
 require __DIR__.'/auth.php';

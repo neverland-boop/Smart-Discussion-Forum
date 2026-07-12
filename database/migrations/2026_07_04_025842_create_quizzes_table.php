@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('title', 100);
             $table->text('description');
+            $table->string('status')->default('DRAFT');
             $table->foreignId('creator_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('group_id')->constrained()->cascadeOnDelete();
             $table->integer('time_limit'); // Duration in minutes

@@ -53,7 +53,7 @@ new class extends Component {
                     @forelse($availableGroups as $group)
                         <div class="flex items-center justify-between p-3 bg-slate-900 rounded-lg">
                             <span class="text-slate-200">{{ $group->name }}</span>
-                            <button wire:click="joinGroup({{ $group->id }})" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white text-sm rounded-md transition">
+                            <button wire:click="joinGroup({{ $group->id }})" class="px-3 py-1 bg-green-600 hover:bg-green-500 text-white text-sm rounded-md transition">
                                 Join
                             </button>
                         </div>
