@@ -20,4 +20,9 @@ class Quiz extends Model
     {
         return $this->belongsTo(Group::class);
     }
+
+    public function attempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+    }
 }

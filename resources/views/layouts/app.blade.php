@@ -34,6 +34,9 @@
                             <a href="#" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Quiz Control</a>
                             <a href="#" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Reports</a>
                         @endif
+                         @if(auth()->user()->hasAnyRole(['admin']))
+                            <a href="#" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Moderation</a>
+                        @endif
                     </nav>
                 </div>
 

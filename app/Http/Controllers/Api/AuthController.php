@@ -39,17 +39,25 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
-        // Fetch user to check status (Requirement #4)
-        if ($user->status === 'blacklisted') {
-            return response()->json(['error' => 'Account is blacklisted.'], 403);
+        // Check if the student has an active suspension in the blacklists table
+        $isBlacklisted = \App\Models\Blacklist::where('user_id', $user->id)
+            ->where('status', 'SUSPENDED')
+            ->where('expiry_date', '>', now()) // Ensure the ban hasn't expired
+            ->exists();
+
+        if ($isBlacklisted) {
+            Auth::logout(); // Log them out immediately
+            return response()->json([
+                'error' => 'Account is suspended due to inactivity.',
+                'status' => 'BLACKLISTED'
+            ], 403);
         }
 
         $token = $user->createToken('java-client')->plainTextToken;
 
         return $this->respondWithToken($token, $user);
     }
-
-    protected function respondWithToken($token, $user)
+        protected function respondWithToken($token, $user)
     {
         return response()->json([
             'access_token' => $token,

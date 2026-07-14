@@ -1,159 +1,180 @@
 <?php
 use Livewire\Volt\Component;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Group;
+use App\Models\Quiz;
 
 new class extends Component {
-    public function with(): array
+    // Stat Cards
+    public $activeGroupsCount = 0;
+    public $pendingQuizzesCount = 0;
+    public $avgScore = 0; 
+    public $unreadMsgsCount = 0;
+
+    // Collections for UI sections
+    public $myGroups = [];
+    public $upcomingQuizzes = [];
+    public $recentActivities = [];
+
+    public function mount()
     {
-        return [
-            'stats' => [
-                'groups' => 0,
-                'quizzes_due' => 0,
-                'avg_score' => '-',
-                'unread_messages' => 0,
-            ],
-            'my_groups' => [], 
-            'upcoming_quizzes' => [], 
-            'recent_activities' => [] 
-        ];
+        $user = Auth::user();
+
+        // 1. Fetch My Groups (Using your current schema where user_id is in the groups table)
+        // If you create a pivot table later, change this to: $user->groups()->latest()->take(4)->get();
+        $this->myGroups = Group::where('user_id', $user->id)->latest()->take(4)->get();
+        $this->activeGroupsCount = $this->myGroups->count();
+
+        // 2. Fetch Pending Quizzes
+        if ($this->activeGroupsCount > 0) {
+            $groupIds = $this->myGroups->pluck('id');
+            
+            $pendingQuery = Quiz::whereIn('group_id', $groupIds)
+                ->where('status', '!=', 'DRAFT')
+                ->whereDoesntHave('attempts', function($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                          ->whereNotNull('submitted_at');
+                });
+
+            $this->pendingQuizzesCount = $pendingQuery->count();
+            
+            $this->upcomingQuizzes = $pendingQuery
+                ->orderBy('start_time', 'asc')
+                ->take(3)
+                ->get();
+        }
+
+        // 3. Average Score (Calculated directly from your 'marks' table)
+        $average = DB::table('marks')
+            ->where('user_id', $user->id)
+            ->avg('score');
+            
+        $this->avgScore = $average ? round($average, 1) : 0;
+
+        // 4. Fetch Unread Messages
+        if (method_exists($user, 'unreadNotifications')) {
+            $this->unreadMsgsCount = $user->unreadNotifications()->count();
+        }
+
+        // 5. Recent Activity Placeholder
+        $this->recentActivities = collect([]); 
     }
 }; ?>
 
-<!-- ADDED p-6 lg:p-8 HERE to push content away from the edges -->
-<div class="max-w-7xl mx-auto space-y-6 p-6 lg:p-8">
+<div class="p-6 space-y-8 min-h-screen text-slate-50">
     
-    <!-- Functional Page Header -->
-    <div class="flex items-center justify-between">
-        <h1 class="text-xl font-bold text-white tracking-tight">Dashboard Overview</h1>
-        <a href="{{ route('forums') ?? '#' }}" class="px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-medium rounded-lg transition shadow-sm flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+    <!-- Page Header & Action -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold tracking-wide text-white">Dashboard Overview</h2>
+        <button class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md font-semibold flex items-center transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Join a Group
-        </a>
+        </button>
     </div>
 
-    <!-- STATS ROW -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1 -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-            <div class="flex justify-between items-start">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Active Groups</p>
-                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+    <!-- 1. STAT CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Active Groups -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm flex flex-col justify-between">
+            <div class="flex justify-between items-center text-slate-400">
+                <span class="text-xs font-semibold uppercase tracking-wider">Active Groups</span>
+                <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
             </div>
-            <h3 class="text-2xl font-bold text-white mt-2">{{ $stats['groups'] }}</h3>
+            <p class="text-3xl font-bold text-white mt-4">{{ $activeGroupsCount }}</p>
         </div>
 
-        <!-- Card 2 -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-            <div class="flex justify-between items-start">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Pending Quizzes</p>
-                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+        <!-- Pending Quizzes -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm flex flex-col justify-between">
+            <div class="flex justify-between items-center text-slate-400">
+                <span class="text-xs font-semibold uppercase tracking-wider">Pending Quizzes</span>
+                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
             </div>
-            <h3 class="text-2xl font-bold text-white mt-2">{{ $stats['quizzes_due'] }}</h3>
+            <p class="text-3xl font-bold text-white mt-4">{{ $pendingQuizzesCount }}</p>
         </div>
 
-        <!-- Card 3 -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-            <div class="flex justify-between items-start">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Avg. Score</p>
-                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        <!-- Avg. Score -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm flex flex-col justify-between">
+            <div class="flex justify-between items-center text-slate-400">
+                <span class="text-xs font-semibold uppercase tracking-wider">Avg. Score</span>
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
             </div>
-            <h3 class="text-2xl font-bold text-white mt-2">{{ $stats['avg_score'] }}</h3>
+            <p class="text-3xl font-bold text-white mt-4">{{ $avgScore > 0 ? $avgScore . '%' : '-' }}</p>
         </div>
-        
-        <!-- Card 4 -->
-        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-            <div class="flex justify-between items-start">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Unread Msgs</p>
-                <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+
+        <!-- Unread Msgs -->
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm flex flex-col justify-between">
+            <div class="flex justify-between items-center text-slate-400">
+                <span class="text-xs font-semibold uppercase tracking-wider">Unread Msgs</span>
+                <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
             </div>
-            <h3 class="text-2xl font-bold text-white mt-2">{{ $stats['unread_messages'] }}</h3>
+            <p class="text-3xl font-bold text-white mt-4">{{ $unreadMsgsCount }}</p>
         </div>
     </div>
 
-    <!-- MIDDLE SECTION -->
+    <!-- 2. MAIN PANELS (Grid Layout) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- Left: My Groups -->
-        <div class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider">My Groups</h2>
-            </div>
-            
-            <div class="space-y-2 flex-1">
-                @forelse($my_groups as $group)
-                    <div class="flex items-center justify-between p-3 bg-slate-900/30 border border-slate-700/50 rounded-lg hover:bg-slate-700 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-md bg-slate-700 flex items-center justify-center text-white text-xs font-bold">
-                                {{ substr($group['name'], 0, 1) }}
-                            </div>
-                            <div>
-                                <h4 class="text-slate-200 text-sm font-semibold">{{ $group['name'] }}</h4>
-                                <div class="flex items-center gap-2 text-[11px] text-slate-400">
-                                    <span>{{ $group['members'] }} members</span>
-                                    @if($group['new_msgs'] > 0)
-                                        <span>•</span>
-                                        <span class="text-green-400 font-medium">{{ $group['new_msgs'] }} new</span>
-                                    @endif
-                                </div>
-                            </div>
+        <!-- My Groups -->
+        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl shadow-sm p-6">
+            <h3 class="text-sm font-bold tracking-wide uppercase text-white mb-4">My Groups</h3>
+            <div class="space-y-3">
+                @forelse($myGroups as $group)
+                    <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-lg flex justify-between items-center hover:bg-slate-800 transition-colors cursor-pointer">
+                        <div>
+                            <h4 class="text-white font-medium">{{ $group->name }}</h4>
+                            <p class="text-xs text-slate-400 mt-1">Group ID: {{ $group->id }}</p>
                         </div>
+                        <button class="text-sm text-green-400 hover:text-green-300 font-medium">View →</button>
                     </div>
                 @empty
-                    <!-- Subtle Zero Data State -->
-                    <div class="flex items-center justify-center h-24 border border-dashed border-slate-600 rounded-lg bg-slate-800/30">
-                        <p class="text-sm text-slate-500">No active groups. <a href="{{ route('forums') ?? '#' }}" class="text-green-400 hover:text-green-300 font-medium ml-1">Browse groups →</a></p>
+                    <div class="border border-dashed border-slate-700 rounded-lg p-10 flex flex-col items-center justify-center text-center">
+                        <p class="text-slate-500">No active groups. <a href="#" class="text-green-400 hover:underline">Browse groups &rarr;</a></p>
                     </div>
                 @endforelse
             </div>
         </div>
 
-        <!-- Right: Upcoming Quizzes -->
-        <div class="lg:col-span-1 bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm flex flex-col">
-            <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4">Upcoming Quizzes</h2>
-            <div class="space-y-2 flex-1">
-                @forelse($upcoming_quizzes as $quiz)
-                    @php
-                        $border = $quiz['urgency'] === 'high' ? 'border-red-500/50' : ($quiz['urgency'] === 'medium' ? 'border-orange-500/50' : 'border-emerald-500/50');
-                        $text = $quiz['urgency'] === 'high' ? 'text-red-400' : ($quiz['urgency'] === 'medium' ? 'text-orange-400' : 'text-emerald-400');
-                    @endphp
-                    
-                    <div class="p-3 bg-slate-900/30 border-l-2 {{ $border }} border-y border-r border-slate-700/50 rounded-lg">
-                        <h4 class="text-slate-200 font-medium text-sm truncate">{{ $quiz['title'] }}</h4>
-                        <div class="flex justify-between items-center mt-1">
-                            <p class="text-[11px] text-slate-400 truncate w-24">{{ $quiz['group'] }}</p>
-                            <p class="text-[11px] font-semibold {{ $text }}">{{ $quiz['due_text'] }}</p>
+        <!-- Upcoming Quizzes -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-sm p-6">
+            <h3 class="text-sm font-bold tracking-wide uppercase text-white mb-4">Upcoming Quizzes</h3>
+            <div class="space-y-3">
+                @forelse($upcomingQuizzes as $quiz)
+                    <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer">
+                        <h4 class="text-white font-medium truncate">{{ $quiz->title }}</h4>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-xs text-slate-400">
+                                {{ $quiz->start_time ? \Carbon\Carbon::parse($quiz->start_time)->diffForHumans() : 'No start time set' }}
+                            </span>
+                            <span class="text-xs bg-green-900/30 text-green-400 border border-green-800/50 px-2 py-0.5 rounded-full">Pending</span>
                         </div>
                     </div>
                 @empty
-                    <!-- Subtle Zero Data State -->
-                    <div class="flex items-center justify-center h-24 border border-dashed border-slate-600 rounded-lg bg-slate-800/30">
-                        <p class="text-sm text-slate-500">No pending quizzes.</p>
+                    <div class="border border-dashed border-slate-700 rounded-lg p-10 flex items-center justify-center text-center h-32">
+                        <p class="text-slate-500">No pending quizzes.</p>
                     </div>
                 @endforelse
             </div>
         </div>
-        
     </div>
 
-    <!-- BOTTOM SECTION: Recent Activity -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm">
-        <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4">Recent Activity</h2>
-        <div class="space-y-3">
-            @forelse($recent_activities as $activity)
-                <div class="flex items-center gap-3">
-                    <div class="w-2 h-2 rounded-full bg-slate-600 flex-shrink-0"></div>
-                    <div class="flex-1 flex justify-between items-center">
-                        <div>
-                            <h4 class="text-slate-200 text-sm">{{ $activity['title'] }}</h4>
-                            <p class="text-[11px] text-slate-400">{{ $activity['group'] }}</p>
-                        </div>
-                        <span class="text-[11px] text-slate-500">{{ $activity['time'] }}</span>
+    <!-- 3. RECENT ACTIVITY -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-sm p-6">
+        <h3 class="text-sm font-bold tracking-wide uppercase text-white mb-4">Recommended topics</h3>
+        <div class="space-y-4">
+            @forelse($recentActivities as $activity)
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-300">{!! $activity->description !!}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">{{ $activity->created_at->diffForHumans() }}</p>
                     </div>
                 </div>
             @empty
-                 <!-- Subtle Zero Data State -->
-                <p class="text-sm text-slate-500 italic">Activity log is empty.</p>
+                <p class="text-slate-500 italic text-sm">Activity log is empty.</p>
             @endforelse
         </div>
     </div>
-<livewire:student.create-group-modal />
 </div>

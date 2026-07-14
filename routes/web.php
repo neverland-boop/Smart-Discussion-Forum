@@ -18,6 +18,10 @@ Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
+Route::get('/account-blacklisted', function () {
+    return view('account-blacklisted'); 
+})->name('account.blacklisted');
+
 Route::post('/logout', function () {
     Auth::guard('web')->logout();
     request()->session()->invalidate();

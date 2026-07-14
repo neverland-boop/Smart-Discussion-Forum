@@ -27,6 +27,7 @@ class User extends Authenticatable implements JWTSubject // MustVerifyEmail
         'password',
         'agreed_to_rules',
         'status',
+        'warning_count'
     ];
 
     /**
@@ -79,5 +80,21 @@ class User extends Authenticatable implements JWTSubject // MustVerifyEmail
 
     public function groups() {
     return $this->belongsToMany(Group::class, 'group_members');
+}
+
+public function marks()
+    {
+        return $this->hasMany(Mark::class);
+    }
+
+    public function blacklist()
+{
+    return $this->hasOne(Blacklist::class);
+}
+
+public function accessibleTopics()
+{
+    // A user can access many topics
+    return $this->belongsToMany(Topic::class, 'thread_participants', 'user_id', 'topic_id');
 }
 }
