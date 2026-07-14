@@ -1,38 +1,24 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\GroupResource;
-use App\Models\Group;
+use App\Services\GroupService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class GroupController extends Controller
 {
-    // GET /api/groups
-    public function index()
+    public function index(Request $request, GroupService $groupService)
     {
-        // Fetch all groups and eager load the creator relationship
-        $groups = Group::with('creator')->latest()->get();
-        return GroupResource::collection($groups);
+        return response()->json([
+            'my_groups' => $groupService->getUserGroups($request->user()),
+            'available_groups' => $groupService->getAvailableGroups($request->user())
+        ]);
     }
 
-    // POST /api/groups
-    public function store(Request $request)
+    public function join(Request $request, GroupService $groupService)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100',
-        ]);
-
-        $group = Group::create([
-            'name'       => $validated['name'],
-            'creator_id' => Auth::id(),
-        ]);
-
-        // Automatically add the creator as a member of their new group
-        $group->members()->attach(Auth::id());
-
-        return new GroupResource($group);
+        $request->validate(['group_id' => 'required|exists:groups,id']);
+        $result = $groupService->joinGroup($request->group_id, $request->user());
+        return response()->json($result);
     }
 }

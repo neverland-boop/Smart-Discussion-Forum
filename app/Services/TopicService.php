@@ -1,38 +1,42 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\Topic;
-use App\Models\GroupMember;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class TopicService
 {
-    public function getTopicsByGroup(int $groupId)
+    public function createTopic(array $data, User $user)
     {
-        // Enforce enrollment rule
-        $isEnrolled = GroupMember::where('group_id', $groupId)
-            ->where('user_id', Auth::id())
-            ->exists();
+        $topic = Topic::create([
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
+            'group_id' => $data['group_id'],
+            'user_id' => $user->id,
+            'is_private' => $data['is_private'] ?? false,
+        ]);
 
-        if (!$isEnrolled) {
-            abort(403, 'User lacks group enrollment credentials.');
-        }
+        // Automatically approve the creator
+        $topic->participants()->attach($user->id, ['status' => 'approved']);
 
-        return Topic::where('group_id', $groupId)
-            ->with(['author'])
-            ->latest()
-            ->get();
+        return $topic;
     }
 
-    public function createTopic(array $data, int $groupId): Topic
+    public function requestAccess($topicId, User $user)
     {
-        return Topic::create([
-            'title'       => $data['title'],
-            'description' => $data['description'],
-            'group_id'    => $groupId,
-            'user_id'     => Auth::id(),
-            'post_count'  => 0,
-        ]);
+        $topic = Topic::findOrFail($topicId);
+        $topic->participants()->syncWithoutDetaching([$user->id => ['status' => 'pending']]);
+        return true;
+    }
+
+    public function approveParticipant($topicId, $targetUserId, User $actingUser)
+    {
+        $topic = Topic::findOrFail($topicId);
+        
+        if ($topic->user_id === $actingUser->id || $actingUser->hasRole('admin')) {
+            $topic->participants()->updateExistingPivot($targetUserId, ['status' => 'approved']);
+            return true;
+        }
+        return false;
     }
 }

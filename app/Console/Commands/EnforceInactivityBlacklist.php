@@ -27,3 +27,4 @@ class EnforceInactivityBlacklist extends Command
         $this->info('Suspended ' . $expiredUsers->count() . ' non-compliant users.');
     }
 }
+

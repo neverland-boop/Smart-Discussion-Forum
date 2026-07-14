@@ -1,49 +1,76 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\TopicService;
+use App\Services\ModerationService;
+use App\Services\PostService; // Your existing service
 use Illuminate\Http\Request;
 
 class TopicController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(Request $request, TopicService $topicService)
     {
-        //
+        $validated = $request->validate([
+            'title' => 'required|string|min:3|max:255',
+            'description' => 'nullable|string|max:1000',
+            'group_id' => 'required|exists:groups,id',
+            'is_private' => 'boolean',
+        ]);
+
+        $topic = $topicService->createTopic($validated, $request->user());
+        return response()->json(['success' => true, 'data' => $topic], 201);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function requestAccess(Request $request, TopicService $topicService)
     {
-        //
+        $request->validate(['topic_id' => 'required|exists:topics,id']);
+        $topicService->requestAccess($request->topic_id, $request->user());
+        return response()->json(['success' => true, 'message' => 'Access requested.']);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function approve(Request $request, TopicService $topicService)
     {
-        //
+        $request->validate([
+            'topic_id' => 'required|exists:topics,id',
+            'user_id' => 'required|exists:users,id'
+        ]);
+
+        $approved = $topicService->approveParticipant($request->topic_id, $request->user_id, $request->user());
+        
+        if ($approved) {
+            return response()->json(['success' => true, 'message' => 'Participant approved.']);
+        }
+        return response()->json(['error' => 'Unauthorized'], 403);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function warn(Request $request, ModerationService $moderationService)
     {
-        //
+        $request->validate([
+            'topic_id' => 'required|exists:topics,id',
+            'user_id' => 'required|exists:users,id'
+        ]);
+
+        $result = $moderationService->warnParticipant($request->topic_id, $request->user_id, $request->user());
+        
+        if ($result['success']) {
+            return response()->json($result);
+        }
+        return response()->json(['error' => $result['message']], 403);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function sendMessage(Request $request, PostService $postService, ModerationService $moderationService)
     {
-        //
+        $request->validate([
+            'topic_id' => 'required|exists:topics,id',
+            'content' => 'required|string|max:2000'
+        ]);
+
+        $postService->createPost(['content' => $request->content], $request->topic_id);
+        
+        // Trigger compliance
+        $moderationService->clearWarningsIfCompliant($request->user());
+
+        return response()->json(['success' => true, 'message' => 'Message sent.']);
     }
 }

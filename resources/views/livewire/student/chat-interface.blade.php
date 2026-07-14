@@ -3,6 +3,9 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\Validate;
 use Livewire\Attributes\On; 
 use App\Services\PostService;
+use App\Services\TopicService;
+use App\Services\GroupService;
+use App\Services\ModerationService;
 use App\Models\Group;
 use App\Models\Topic;
 use Illuminate\Support\Facades\Auth;
@@ -31,66 +34,53 @@ new class extends Component {
         $this->showTopicModal = true;
     }
 
-    public function saveTopic()
+    public function saveTopic(TopicService $topicService)
     {
-        $this->validate([
+        $validated = $this->validate([
             'newTopicTitle' => 'required|string|min:3|max:255',
             'newTopicDescription' => 'nullable|string|max:1000',
             'isPrivate' => 'boolean', 
         ]);
 
-        $topic = Topic::create([
+        $topicService->createTopic([
             'title' => $this->newTopicTitle,
             'description' => $this->newTopicDescription,
             'group_id' => $this->selectedGroupId,
-            'user_id' => auth()->id(), 
-            'is_private' => $this->isPrivate, 
-        ]);
-
-        $topic->participants()->attach(auth()->id(), ['status' => 'approved']);
+            'is_private' => $this->isPrivate,
+        ], auth()->user());
 
         $this->reset(['showTopicModal', 'newTopicTitle', 'newTopicDescription', 'isPrivate', 'selectedGroupId']);
     }
 
-    public function requestAccess($topicId)
+    public function requestAccess(TopicService $topicService, $topicId)
     {
-        $topic = Topic::findOrFail($topicId);
-        $topic->participants()->attach(auth()->id(), ['status' => 'pending']);
+        $topicService->requestAccess($topicId, auth()->user());
     }
 
-    public function approveParticipant($topicId, $userId)
+    public function approveParticipant(TopicService $topicService, $topicId, $userId)
     {
-        $topic = Topic::findOrFail($topicId);
-        if ($topic->user_id === auth()->id()) {
-            $topic->participants()->updateExistingPivot($userId, ['status' => 'approved']);
-        }
+        $topicService->approveParticipant($topicId, $userId, auth()->user());
     }
 
-   public function sendMessage(PostService $postService)
-{
-    if (!$this->activeTopic) return;
-    $this->validate(); 
+    public function sendMessage(PostService $postService, ModerationService $moderationService)
+    {
+        if (!$this->activeTopic) return;
+        $this->validate(); 
 
-    $postService->createPost(
-        ['content' => $this->newMessage], 
-        $this->activeTopic
-    );
+        // Save Message
+        $postService->createPost(['content' => $this->newMessage], $this->activeTopic);
 
-    // --- COMPLIANCE TRIGGER ---
-    $userBlacklist = auth()->user()->blacklist;
-    
-    // If they have warnings or are in the compliance period, reset them
-    if ($userBlacklist && $userBlacklist->warning_count > 0) {
-        $userBlacklist->update([
-            'warning_count' => 0,
-            'status' => 'ACTIVE',
-            'expiry_date' => null,
-        ]);
+        // Clear Blacklist Warnings if compliant
+        $moderationService->clearWarningsIfCompliant(auth()->user());
+
+        $this->newMessage = '';
+        $this->dispatch('message-sent'); 
     }
 
-    $this->newMessage = '';
-    $this->dispatch('message-sent'); 
- }
+    public function warnParticipant(ModerationService $moderationService, $topicId, $userId)
+    {
+        $moderationService->warnParticipant($topicId, $userId, auth()->user());
+    }
 
     public function getListeners()
     {
@@ -102,7 +92,7 @@ new class extends Component {
     
     public function refreshMessages() {}
 
-    public function with(PostService $postService): array
+    public function with(PostService $postService, GroupService $groupService): array
     {
         $formattedMessages = collect();
         $topicModel = null;
@@ -126,7 +116,7 @@ new class extends Component {
             if ($topicModel->is_private) {
                 $topicMembers = $topicModel->participants()->wherePivot('status', 'approved')->get();
                 
-                if ($topicModel->user_id === auth()->id()) {
+                if ($topicModel->user_id === auth()->id() || auth()->user()->hasRole('admin')) {
                     $pendingRequests = $topicModel->participants()->wherePivot('status', 'pending')->get();
                 }
             } else {
@@ -137,10 +127,8 @@ new class extends Component {
         return [
             'messages'        => $formattedMessages,
             'topicModel'      => $topicModel, 
-            'groups'          => Auth::user()->groups()->with('topics')->latest()->get(),
-            'availableGroups' => Group::whereDoesntHave('members', function($query) {
-                $query->where('user_id', Auth::id());
-            })->take(10)->get(),
+            'groups'          => $groupService->getUserGroups(auth()->user()),
+            'availableGroups' => $groupService->getAvailableGroups(auth()->user()),
             'activeMembers'   => $topicMembers,
             'pendingRequests' => $pendingRequests,
         ];
@@ -151,38 +139,12 @@ new class extends Component {
         $this->expandedGroup = $this->expandedGroup === $groupId ? null : $groupId;
     }
 
-    public function joinGroup($groupId)
+    public function joinGroup(GroupService $groupService, $groupId)
     {
-        Auth::user()->groups()->attach($groupId);
+        $groupService->joinGroup($groupId, auth()->user());
         $this->showJoinModal = false;
         $this->dispatch('group-joined'); 
     }
-    public function warnParticipant($topicId, $userId)
-{
-    $topic = Topic::findOrFail($topicId);
-        $user = auth()->user();
-
-        // Now uses the formal Admin Role check
-        if ($topic->user_id === $user->id || $user->hasRole('admin')) {
-            $userToWarn = \App\Models\User::findOrFail($userId);
-        
-        // Fetch or create the blacklist record
-        $blacklist = $userToWarn->blacklist()->firstOrCreate(
-            ['user_id' => $userId],
-            ['warning_count' => 0, 'status' => 'ACTIVE']
-        );
-
-        $blacklist->increment('warning_count');
-
-        // If they hit 2 warnings, start the compliance countdown
-        if ($blacklist->warning_count >= 2) {
-            $blacklist->update([
-                'status' => 'COMPLIANCE_PERIOD',
-                'expiry_date' => now()->addHours(48), // 48 hours to comply
-            ]);
-        }
-    }
-}
 
     public function selectTopic($topicId)
     {
@@ -194,6 +156,7 @@ new class extends Component {
     #[On('group-created')]
     public function updateSidebar() {}
 }; ?>
+
 
 <div class="h-full w-full bg-slate-900 flex overflow-hidden">
     
