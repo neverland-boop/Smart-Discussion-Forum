@@ -1,6 +1,7 @@
 package utils;
 
-import java.io.File;
+import config.DatabaseConfig;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -8,32 +9,16 @@ import java.sql.Statement;
 
 public class DatabaseConnection {
 
-    // 1. Define the portable, relative path for the database
-    private static final String DB_FOLDER = "data";
-    private static final String DB_URL = "jdbc:sqlite:" + DB_FOLDER + "/smart-forum.db";
-
-    /**
-     * Establishes a connection to the SQLite database.
-     * It ensures the target folder exists before attempting to connect.
-     */
-    public static Connection getConnection() throws SQLException {
-        // Create the directory if it doesn't exist
-        File directory = new File(DB_FOLDER);
-        if (!directory.exists()) {
-            directory.mkdir();
-        }
-
-        // Return the active connection
-        return DriverManager.getConnection(DB_URL);
+    private DatabaseConnection() {
     }
 
-    /**
-     * Initializes the database schema.
-     * Called exactly once when the Launcher starts.
-     */
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(DatabaseConfig.getJdbcUrl());
+    }
+
     public static void initializeDatabase() {
-        // The SQL schema using Java 15+ text blocks
-        String sql = """
+
+        String usersTable = """
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     username TEXT NOT NULL,
@@ -44,19 +29,33 @@ public class DatabaseConnection {
                 );
                 """;
 
-        // 2. Use try-with-resources to automatically close the connection and statement
-        try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement()) {
+        String offlineQueueTable = """
+                CREATE TABLE IF NOT EXISTS offline_queue (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    endpoint TEXT NOT NULL,
+                    request_method TEXT NOT NULL,
+                    payload TEXT,
+                    status TEXT NOT NULL DEFAULT 'PENDING',
+                    retry_count INTEGER NOT NULL DEFAULT 0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+                """;
 
-            // Execute the table creation
-            stmt.execute(sql);
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
 
-            // Log success with the new relative path
-            System.out.println("SQLite connected successfully at ./" + DB_FOLDER + "/smart-forum.db");
-            System.out.println("users table ready.");
+            statement.execute(usersTable);
+            statement.execute(offlineQueueTable);
 
-        } catch (SQLException e) {
-            System.err.println("Could not initialize local SQLite database: " + e.getMessage());
+            System.out.println("SQLite connected successfully.");
+            System.out.println("Users table ready.");
+            System.out.println("Offline queue table ready.");
+
+        } catch (SQLException exception) {
+            System.err.println(
+                    "Could not initialize local SQLite database: "
+                            + exception.getMessage()
+            );
         }
     }
 }
