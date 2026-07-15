@@ -42,4 +42,9 @@ Volt::route('quizzes/{id}/attempt', 'student.quiz-attempt')
     ->middleware(['auth', 'verified', 'role:student'])
     ->name('quiz.attempt');
 
+Route::middleware(['auth', 'role:lecturer'])->group(function () {
+    Volt::route('/lecturer/students', 'lecturer.students')->name('lecturer.students');
+    Volt::route('/lecturer/grades', 'lecturer.grades')->name('lecturer.grades');
+});
+
 require __DIR__.'/auth.php';

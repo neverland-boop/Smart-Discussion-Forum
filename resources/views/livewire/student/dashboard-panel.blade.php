@@ -67,7 +67,7 @@ new class extends Component {
     <!-- Page Header & Action -->
     <div class="flex justify-between items-center">
         <h2 class="text-2xl font-bold tracking-wide text-white">Dashboard Overview</h2>
-        <button class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md font-semibold flex items-center transition-colors">
+        <button wire:click="$dispatch('open-join-modal')" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md font-semibold flex items-center transition-colors">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Join a Group
         </button>
@@ -116,24 +116,34 @@ new class extends Component {
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <!-- My Groups -->
-        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl shadow-sm p-6">
-            <h3 class="text-sm font-bold tracking-wide uppercase text-white mb-4">My Groups</h3>
-            <div class="space-y-3">
-                @forelse($myGroups as $group)
-                    <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-lg flex justify-between items-center hover:bg-slate-800 transition-colors cursor-pointer">
+<!-- MY GROUPS CONTAINER -->
+        <div class="col-span-2">
+            <h2 class="text-lg font-bold text-white mb-4">MY GROUPS</h2>
+            
+            <!-- This container now has a fixed height and hides the scrollbar -->
+            <div class="h-[300px] overflow-y-auto no-scrollbar space-y-4 pr-2">
+                @foreach($myGroups as $group)
+                    <div class="bg-slate-800 border border-slate-700 p-5 rounded-xl flex justify-between items-center shrink-0">
                         <div>
-                            <h4 class="text-white font-medium">{{ $group->name }}</h4>
-                            <p class="text-xs text-slate-400 mt-1">Group ID: {{ $group->id }}</p>
+                            <h3 class="text-white font-bold">{{ $group->name }}</h3>
+                            <p class="text-slate-400 text-sm">Group ID: {{ $group->id }}</p>
                         </div>
-                        <button class="text-sm text-green-400 hover:text-green-300 font-medium">View →</button>
+                        <a href="#" class="text-blue-400 hover:text-blue-300 transition text-sm">View →</a>
                     </div>
-                @empty
-                    <div class="border border-dashed border-slate-700 rounded-lg p-10 flex flex-col items-center justify-center text-center">
-                        <p class="text-slate-500">No active groups. <a href="#" class="text-green-400 hover:underline">Browse groups &rarr;</a></p>
-                    </div>
-                @endforelse
+                @endforeach
             </div>
         </div>
+
+        <!-- Add this to your CSS file or a <style> block to hide the scrollbar -->
+        <style>
+            .no-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+            .no-scrollbar {
+                -ms-overflow-style: none;  /* IE and Edge */
+                scrollbar-width: none;  /* Firefox */
+            }
+        </style>
 
         <!-- Upcoming Quizzes -->
         <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-sm p-6">
@@ -177,4 +187,5 @@ new class extends Component {
             @endforelse
         </div>
     </div>
+        <livewire:student.join-group-modal />
 </div>

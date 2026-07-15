@@ -63,15 +63,21 @@ class QuizController extends Controller
         return MarkResource::collection($marks);
     }
 
-    public function show($id)
-{
-    // Fetch the quiz along with its related questions
-    // Make sure 'questions' matches the relationship name in your Quiz model
-    $quiz = \App\Models\Quiz::with('questions')->findOrFail($id);
+public function show($id)
+    {
+        $quiz = \App\Models\Quiz::with('questions')->findOrFail($id);
 
-    return response()->json([
-        'success' => true,
-        'data' => $quiz
-    ]);
-}
+        // Block API access if it's too early
+        if ($quiz->start_time && now()->isBefore($quiz->start_time)) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'This quiz has not started yet.'
+            ], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $quiz
+        ]);
+    }
 }

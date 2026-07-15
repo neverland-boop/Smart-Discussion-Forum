@@ -28,7 +28,10 @@
                         @if(auth()->user()->hasAnyRole(['student']))
                         <a href="{{ route('forums') }}" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('forums') ? 'bg-green-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-green-400' }}">Discussions</a>
                         <a href="{{ route('quizzes') }}" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('quizzes') ? 'bg-green-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-green-400' }}">Quizzes</a>
-                        
+                        @endif
+                        @if(auth()->user()->hasAnyRole(['lecturer']))
+                            <a href="{{ route('lecturer.students') }}" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Students</a>
+                            <a href="{{ route('lecturer.grades') }}" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Grades</a>
                         @endif
                         @if(auth()->user()->hasAnyRole(['admin', 'lecturer']))
                             <a href="#" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Quiz Control</a>

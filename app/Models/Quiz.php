@@ -2,25 +2,29 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Quiz extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'title', 'description', 'creator_id', 'group_id', 
-        'time_limit', 'auto_submit', 'start_time'
+        'title',
+        'description',
+        'status',
+        'creator_id',
+        'group_id',
+        'time_limit',
+        'auto_submit',
+        'start_time'
     ];
 
-    protected $casts = [
-        'auto_submit' => 'boolean',
-        'start_time'  => 'datetime',
-    ];
-
-    public function group()
+    public function questions()
     {
-        return $this->belongsTo(Group::class);
+        return $this->hasMany(Question::class);
     }
-
+    
     public function attempts()
     {
         return $this->hasMany(QuizAttempt::class);

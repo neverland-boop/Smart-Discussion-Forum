@@ -49,19 +49,47 @@ new class extends Component {
 
             <div class="grid gap-4">
                 @forelse($upcomingQuizzes as $quiz)
+                    @php
+                        // Check if the quiz has a start time and if it is still in the future
+                        $isUpcoming = $quiz->start_time && now()->isBefore($quiz->start_time);
+                    @endphp
+
                     <div class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700 p-6 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center transition duration-200">
                         <div class="mb-4 sm:mb-0">
-                            <h3 class="text-lg font-bold text-white">{{ $quiz->title }}</h3>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                {{ $quiz->title }}
+                                @if($isUpcoming)
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                                        Locked
+                                    </span>
+                                @endif
+                            </h3>
                             <div class="flex gap-4 mt-2 text-sm text-slate-400">
                                 <span class="flex items-center gap-1">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                                     {{ $quiz->group->name ?? 'General' }}
                                 </span>
+                                
+                                <!-- Show the countdown if it is in the future -->
+                                @if($isUpcoming)
+                                    <span class="flex items-center gap-1 text-orange-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        Opens {{ \Carbon\Carbon::parse($quiz->start_time)->diffForHumans() }}
+                                    </span>
+                                @endif
                             </div>
                         </div>
-                        <a href="{{ route('quiz.attempt', ['id' => $quiz->id]) }}" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow transition">
-                            Start Quiz
-                        </a>
+
+                        <!-- Conditional Button Display -->
+                        @if($isUpcoming)
+                            <button disabled class="px-6 py-2 bg-slate-700 text-slate-500 font-semibold rounded-lg shadow cursor-not-allowed border border-slate-600">
+                                Not Open Yet
+                            </button>
+                        @else
+                            <a href="{{ route('quiz.attempt', ['id' => $quiz->id]) }}" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow transition">
+                                Start Quiz
+                            </a>
+                        @endif
                     </div>
                 @empty
                     <div class="bg-slate-800 border border-slate-700 border-dashed p-12 rounded-xl text-center">
