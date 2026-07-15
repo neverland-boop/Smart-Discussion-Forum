@@ -1,23 +1,30 @@
 <?php
 
-use App\Livewire\Pages\Auth\RegisterLecturer;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
-Route::view('/', 'welcome');
+// Redirect guest users visiting the root URL straight to login
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
-Volt::route('register/lecturer', 'pages.auth.register-lecturer')
-    ->middleware(['auth', 'role:admin']) 
-    ->name('register.lecturer');
-
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-Route::view('profile', 'profile')
-    ->middleware(['auth'])
-    ->name('profile');
-
-
+// SECURE USER WORKSPACE: Only accessible after logging in successfully
+Route::middleware(['auth', 'verified'])->group(function () {
+    
+    // 1. Central Hub Dashboard Layout
+    Volt::route('/dashboard', 'lecturer-dashboard')->name('dashboard');
+    
+    // 2. Forums & Messaging Channels
+    Volt::route('/discussions', 'chat-room')->name('discussions');
+    
+    // 3. Quizzes Portal Panel (The screen we built)
+    Volt::route('/quizzes/create', 'create-quiz')->name('quizzes.create');
+    
+    
+    Volt::route('/students', 'students')->name('students');
+    Volt::route('/grades', 'grades-index')->name('grades');
+    Volt::route('/reports', 'reports-index')->name('reports');
+    Volt::route('/settings', 'settings-index')->name('settings');
+});
 
 require __DIR__.'/auth.php';
