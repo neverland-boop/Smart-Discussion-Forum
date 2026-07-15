@@ -1,12 +1,60 @@
 <?php
 use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
+use App\Models\Quiz;
+use App\Models\QuizAttempt;
+use App\Services\QuizService;
+use Illuminate\Support\Facades\Auth;
 
-// This tells Laravel to use your app.blade.php layout
 new #[Layout('layouts.app')] class extends Component {
-    public function logViolation() {
-        // Increment a violation counter in your database for this student
-        // Auth::user()->quizAttempts()->where('active', true)->increment('violations');
+    public Quiz $quiz;
+    public $questions;
+    public int $currentQuestionIndex = 0;
+    public array $answers = []; 
+    public int $timeRemaining = 0;
+    public QuizAttempt $attempt;
+
+    public function mount($id) 
+    {
+        // 1. Load the Quiz and Questions
+        $this->quiz = Quiz::with('questions')->findOrFail($id);
+        $this->questions = $this->quiz->questions;
+
+        // 2. Start or Resume the Attempt
+        $this->attempt = QuizAttempt::firstOrCreate(
+            ['quiz_id' => $this->quiz->id, 'user_id' => Auth::id(), 'submitted_at' => null],
+            ['start_time' => now(), 'violations' => 0]
+        );
+
+        // 3. Calculate accurate time remaining (prevents cheating by refreshing the page)
+        $elapsedSeconds = now()->diffInSeconds($this->attempt->start_time);
+        $totalSeconds = $this->quiz->time_limit * 60;
+        $this->timeRemaining = max(0, $totalSeconds - $elapsedSeconds);
+
+        // Pre-fill answers array
+        foreach ($this->questions as $q) {
+            $this->answers[$q->id] = null;
+        }
+    }
+
+    public function setQuestion($index)
+    {
+        $this->currentQuestionIndex = $index;
+    }
+
+    public function logViolation() 
+    {
+        // Increment the violation counter in the database instantly
+        $this->attempt->increment('violations');
+    }
+
+    public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
+    {
+        // Pass the data to the Brain!
+        $score = $quizService->submitAttempt($this->attempt->id, $this->answers, $autoSubmitted);
+        
+        session()->flash('success', "Quiz submitted! Your score: $score");
+        return redirect()->route('dashboard'); // Or wherever you want them to go
     }
 }; ?>
 
@@ -18,8 +66,8 @@ new #[Layout('layouts.app')] class extends Component {
         alert('Warning: Leaving the quiz window is recorded.');
     }
 }" @blur.window="trackViolation()">
-<div class="min-h-screen h-screen w-full bg-slate-900 flex flex-col font-sans text-slate-50 overflow-hidden" 
-     x-data="quizAttempt(875)"> <!-- 875 seconds = 14:35 -->
+<!-- Inject the real time from Livewire -->
+<div class="min-h-screen ..." x-data="quizAttempt({{ $timeRemaining }})"><!-- 875 seconds = 14:35 -->
     
     <!-- TOP NAVIGATION BAR[cite: 5] -->
     <header class="h-16 bg-green-700 flex items-center justify-between px-6 shadow-md z-20 shrink-0">
@@ -53,27 +101,35 @@ new #[Layout('layouts.app')] class extends Component {
                 <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-5">Questions</h2>
                 
                 <!-- Number Grid[cite: 5] -->
-                <div class="grid grid-cols-4 gap-2.5 mb-8">
-                    <!-- Answered State[cite: 5] -->
-                    <button class="h-10 rounded-md bg-green-600 text-white font-bold shadow-sm ring-2 ring-green-600 ring-offset-2 ring-offset-slate-800">1</button>
-                    <!-- Default State[cite: 5] -->
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">2</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">3</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">4</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">5</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">6</button>
-                    <!-- Review State[cite: 5] -->
-                    <button class="h-10 rounded-md bg-orange-500 text-white font-bold shadow-sm">7</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">8</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">9</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">10</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">11</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">12</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">13</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">14</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">15</button>
-                    <button class="h-10 rounded-md bg-slate-700 text-slate-300 hover:bg-slate-600 transition">16</button>
-                </div>
+@php
+    $currentQuestion = $questions[$currentQuestionIndex];
+@endphp
+
+<div class="mb-10">
+    <h3 class="text-green-400 font-bold text-sm tracking-widest uppercase mb-4">
+        Question {{ $currentQuestionIndex + 1 }} of {{ count($questions) }}
+    </h3>
+    <p class="text-2xl text-white font-medium leading-relaxed">
+        {{ $currentQuestion->text }}
+    </p>
+</div>
+
+<!-- Dynamic Options -->
+<div class="space-y-4 flex-1">
+    @foreach(json_decode($currentQuestion->options) as $key => $optionText)
+        <label class="flex items-center gap-4 p-5 rounded-xl border transition cursor-pointer
+            {{ $answers[$currentQuestion->id] === $key ? 'border-green-600 bg-green-900/10' : 'border-slate-700 bg-slate-800/50 hover:border-green-500/50' }}">
+            
+            <!-- Wire model directly binds to the Livewire answers array -->
+            <input type="radio" 
+                   wire:model.live="answers.{{ $currentQuestion->id }}" 
+                   value="{{ $key }}" 
+                   class="w-5 h-5 text-green-600 bg-slate-900 border-slate-500">
+            
+            <span class="text-slate-300 text-lg">{{ $key }}. {{ $optionText }}</span>
+        </label>
+    @endforeach
+</div>
 
                 <!-- Legend[cite: 5] -->
                 <div class="space-y-3 bg-slate-900/30 p-4 rounded-xl border border-slate-700/50">
@@ -205,8 +261,8 @@ new #[Layout('layouts.app')] class extends Component {
 
             forceSubmit() {
                 alert('Time has expired. Your quiz will now be submitted automatically.');
-                @this.call('submitAttempt');
-            }
+                @this.call('submitAttempt', true); // Passes 'true' for $autoSubmitted
+            }       
         }));
     });
 </script>

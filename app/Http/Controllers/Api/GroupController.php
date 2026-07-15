@@ -21,4 +21,28 @@ class GroupController extends Controller
         $result = $groupService->joinGroup($request->group_id, $request->user());
         return response()->json($result);
     }
+
+    public function store(Request $request, GroupService $groupService)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'topic_title' => 'required|string|max:255',
+            'topic_description' => 'required|string|max:255',
+        ]);
+
+        try {
+            $group = $groupService->createGroupWithTopic($validated, $request->user());
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Group created successfully',
+                'data' => $group
+            ], 201);
+            
+        } catch (\Exception $e) {
+            // Log it for your own debugging
+            logger($e->getMessage());
+            return response()->json(['error' => 'Failed to create group.'], 500);
+        }
+    }
 }

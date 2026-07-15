@@ -12,26 +12,26 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-// Protected Routes
 Route::middleware(['auth:sanctum'])->group(function () {
     
-    // --- Administrator Only Routes (Using Spatie Role Middleware) ---
+    // --- Administrator Only ---
     Route::middleware(['role:admin'])->prefix('admin')->group(function () {
         Route::post('/register-lecturer', [AuthController::class, 'registerLecturer']);
-        Route::get('/groups', [GroupController::class, 'adminIndex']); // Suggest renaming the admin method to avoid conflicts
-        Route::post('/groups', [GroupController::class, 'store']);
+        Route::get('/groups', [GroupController::class, 'adminIndex']); 
     });
 
-    // --- Quiz Management ---
+    // --- Quiz Management (Lecturer/Admin) ---
     Route::middleware(['role:lecturer|admin'])->group(function () {
-        Route::post('/groups/{group}/quizzes', [QuizController::class, 'store']);
+        Route::apiResource('groups.quizzes', QuizController::class)->only(['store']);
         Route::get('/quizzes/{quiz}/report', [QuizController::class, 'report']);
     });
     
-    // --- General Authenticated Routes (Students, Lecturers, Admins) ---
-    // These allow suspended users to see available groups, but not participate yet
-    Route::get('/groups', [GroupController::class, 'index']); // Uses the new Service-based index
-    Route::post('/groups/join', [GroupController::class, 'join']);
+    // --- General Group Actions ---
+    // Custom action goes BEFORE the resource
+    Route::post('/groups/join', [GroupController::class, 'join']); 
+    
+    // Using apiResource for index and store
+    Route::apiResource('groups', GroupController::class)->only(['index', 'store']);
     
     Route::post('/logout', [AuthController::class, 'logout']);
 });
@@ -39,22 +39,23 @@ Route::middleware(['auth:sanctum'])->group(function () {
 // --- FORUM & INTERACTION ROUTES (Protected by Blacklist) ---
 Route::middleware(['auth:sanctum', 'check.blacklist'])->group(function () {
     
-    // Topic Viewing & Creation
-    Route::get('/groups/{group}/topics', [TopicController::class, 'index']);
-    Route::post('/groups/{group}/topics', [TopicController::class, 'store']);
+    // Nested Resource for Topics (Handles GET /groups/{group}/topics and POST /groups/{group}/topics)
+    Route::apiResource('groups.topics', TopicController::class)->only(['index', 'store']);
 
-    // --- NEW: Topic Participation & Moderation ---
+    // Custom Moderation/Access Actions
     Route::post('/topics/request-access', [TopicController::class, 'requestAccess']);
     Route::post('/topics/approve', [TopicController::class, 'approve']);
     Route::post('/topics/warn', [TopicController::class, 'warn']);
 
-    // --- Forum/Thread Communication ---
-    Route::get('/topics/{topic}/posts', [PostController::class, 'index']);
+    Route::get('/quizzes', [QuizController::class, 'index']); 
     
-    // Replaced your old PostController@store with the new TopicController@sendMessage 
-    // so that it triggers the "Compliance/Un-warning" logic when a desktop user posts
+    Route::get('/quizzes/{quiz}', [QuizController::class, 'show']); 
+
+    Route::post('/attempts/{attempt}/submit', [QuizAttemptController::class, 'submit']);
+
+    Route::apiResource('topics.posts', PostController::class)->only(['index']);
+    
+    // Custom action for sending messages (triggers compliance)
     Route::post('/topics/message', [TopicController::class, 'sendMessage']); 
     
-    // Quizzes
-    Route::post('/attempts/{attempt}/submit', [QuizAttemptController::class, 'submit']);
 });

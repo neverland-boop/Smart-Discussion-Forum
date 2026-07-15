@@ -62,4 +62,16 @@ class QuizController extends Controller
         
         return MarkResource::collection($marks);
     }
+
+    public function show($id)
+{
+    // Fetch the quiz along with its related questions
+    // Make sure 'questions' matches the relationship name in your Quiz model
+    $quiz = \App\Models\Quiz::with('questions')->findOrFail($id);
+
+    return response()->json([
+        'success' => true,
+        'data' => $quiz
+    ]);
+}
 }

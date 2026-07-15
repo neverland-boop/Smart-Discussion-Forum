@@ -2,9 +2,7 @@
 use Livewire\Volt\Component;
 use Livewire\Attributes\Validate;
 use Livewire\Attributes\On;
-use App\Models\Group;
-use App\Models\Topic;
-use Illuminate\Support\Facades\DB;
+use App\Services\GroupService;
 use Illuminate\Support\Facades\Auth;
 
 new class extends Component {
@@ -31,41 +29,28 @@ new class extends Component {
         $this->resetValidation();
     }
 
-    public function createGroup()
+    public function createGroup(GroupService $groupService)
     {
         $this->validate();
 
         try {
-            DB::transaction(function () {
-                $group = Group::create([
-                    'name'    => $this->newGroupName,
-                    'user_id' => Auth::id(),
-                ]);
-
-                Topic::create([
-                    'group_id'    => $group->id,
-                    'title'       => $this->newGroupTopic,
-                    // FIXED: Changed from newGroupDescription to newTopicDescription
-                    'description' => $this->newTopicDescription, 
-                    'user_id'     => Auth::id(),
-                ]);
-
-                if (method_exists($group, 'members')) {
-                    $group->members()->attach(Auth::id());
-                }
-            });
+            // Pass the data to the Service
+            $groupService->createGroupWithTopic([
+                'name' => $this->newGroupName,
+                'topic_title' => $this->newGroupTopic,
+                'topic_description' => $this->newTopicDescription,
+            ], Auth::user());
 
             $this->dispatch('group-created');
-            $this->closeModal(); // This will now execute successfully
+            $this->closeModal(); 
             $this->dispatch('notify', message: 'Group created successfully!');
 
         } catch (\Exception $e) {
-            // Optional: Log the real error to storage/logs/laravel.log to debug easily
             logger($e->getMessage()); 
             session()->flash('error', 'Failed to create group. Please try again.');
         }
     }
-};?>
+}; ?>
 
 <div>
     @if($showModal)

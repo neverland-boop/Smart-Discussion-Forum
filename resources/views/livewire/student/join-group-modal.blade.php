@@ -1,8 +1,8 @@
-<?php
 
+<?php
 use Livewire\Volt\Component;
 use Livewire\Attributes\On;
-use App\Models\Group;
+use App\Services\GroupService;
 use Illuminate\Support\Facades\Auth;
 
 new class extends Component {
@@ -14,30 +14,21 @@ new class extends Component {
         $this->showJoinModal = true;
     }
 
-    // 1. THIS IS THE METHOD THAT WAS MISSING
-    public function joinGroup($groupId)
+    public function joinGroup(GroupService $groupService, $groupId)
     {
-        $user = Auth::user();
-
-        // Safety Guard: Check if the user is already a member
-        if ($user->groups()->where('group_id', $groupId)->exists()) {
-            return; // Stop here if they are already in the group
-        }
-
-        // Attach them if they aren't
-        $user->groups()->attach($groupId);
+        // 1. Tell the service to do the database work
+        $groupService->joinGroup($groupId, Auth::user());
         
-        $this->show = false;
+        // 2. Update the UI state
+        $this->showJoinModal = false; // Fixed typo here
         $this->dispatch('group-joined'); 
     }
 
-// In JoinGroupModal.php
-    public function with(): array
+    // Inject the service here to get the data for the view
+    public function with(GroupService $groupService): array
     {
         return [
-            'availableGroups' => Group::whereDoesntHave('members', function($query) {
-                $query->where('user_id', Auth::id());
-            })->get(),
+            'availableGroups' => $groupService->getAvailableGroups(Auth::user()),
         ];
     }
 }; 

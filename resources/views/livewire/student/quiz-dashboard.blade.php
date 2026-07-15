@@ -1,28 +1,104 @@
 <?php
 use Livewire\Volt\Component;
-use App\Models\Quiz;
+use App\Services\QuizService;
+use Illuminate\Support\Facades\Auth;
 
 new class extends Component {
-    public function with(): array
+    public function with(QuizService $quizService): array
     {
         return [
-            'upcomingQuizzes' => Quiz::where('status', 'ANNOUNCED')->latest()->get(),
+            'upcomingQuizzes' => $quizService->getAvailableQuizzes(),
+            'stats' => $quizService->getUserStats(Auth::user()),
         ];
     }
 }; ?>
 
-<!-- Your HTML follows below -->
-<div class="p-8 max-w-5xl mx-auto">
-    <h1 class="text-2xl font-bold text-white mb-6">Available Quizzes</h1>
-    
-    <div class="grid gap-4">
-        @forelse($upcomingQuizzes as $quiz)
-            <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl flex justify-between items-center">
-                <h3 class="text-white">{{ $quiz->title }}</h3>
-                <a href="{{ route('quiz.attempt', ['id' => $quiz->id]) }}" class="text-green-500">Attempt Quiz</a>
+<div class="p-8 max-w-7xl mx-auto min-h-screen">
+    <div class="flex justify-between items-end mb-8 border-b border-slate-700 pb-4">
+        <div>
+            <h1 class="text-3xl font-bold text-white tracking-wide">Quiz Center</h1>
+            <p class="text-slate-400 mt-1">Test your knowledge and track your progress.</p>
+        </div>
+    </div>
+
+    <!-- Stats Row: Fills the top space nicely -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg">
+            <div class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Quizzes Completed</div>
+            <div class="text-4xl font-bold text-white">{{ $stats['completed_count'] }}</div>
+        </div>
+        <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg">
+            <div class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Average Score</div>
+            <div class="text-4xl font-bold text-green-400">{{ $stats['average_score'] }}</div>
+        </div>
+        <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg">
+            <div class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Pending Reviews</div>
+            <div class="text-4xl font-bold text-yellow-500">{{ $stats['pending_reviews'] }}</div>
+        </div>
+    </div>
+
+    <!-- Two-Column Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Main Content: Available Quizzes (Takes up 2/3 of the screen) -->
+        <div class="lg:col-span-2 space-y-6">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Available Now
+            </h2>
+
+            <div class="grid gap-4">
+                @forelse($upcomingQuizzes as $quiz)
+                    <div class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700 p-6 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center transition duration-200">
+                        <div class="mb-4 sm:mb-0">
+                            <h3 class="text-lg font-bold text-white">{{ $quiz->title }}</h3>
+                            <div class="flex gap-4 mt-2 text-sm text-slate-400">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                                    {{ $quiz->group->name ?? 'General' }}
+                                </span>
+                            </div>
+                        </div>
+                        <a href="{{ route('quiz.attempt', ['id' => $quiz->id]) }}" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow transition">
+                            Start Quiz
+                        </a>
+                    </div>
+                @empty
+                    <div class="bg-slate-800 border border-slate-700 border-dashed p-12 rounded-xl text-center">
+                        <svg class="w-12 h-12 text-slate-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        <p class="text-slate-400 font-medium">You're all caught up!</p>
+                        <p class="text-slate-500 text-sm mt-1">No new quizzes have been assigned to your groups.</p>
+                    </div>
+                @endforelse
             </div>
-        @empty
-            <p class="text-slate-500">No quizzes scheduled.</p>
-        @endforelse
+        </div>
+
+        <!-- Sidebar (Takes up 1/3 of the screen) -->
+        <div class="space-y-6">
+            <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl">
+                <h3 class="text-white font-bold mb-4">Quiz Rules & Integrity</h3>
+                <ul class="space-y-3 text-sm text-slate-400">
+                    <li class="flex items-start gap-2">
+                        <span class="text-red-400 mt-0.5">•</span>
+                        Quizzes are timed. The timer cannot be paused once started.
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-red-400 mt-0.5">•</span>
+                        Navigating away from the quiz page may auto-submit your answers.
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-red-400 mt-0.5">•</span>
+                        Scores are final upon submission.
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Future Feature Placeholder -->
+            <div class="bg-slate-800/30 border border-slate-700/50 p-6 rounded-xl">
+                <h3 class="text-slate-300 font-bold mb-2">Recent Results</h3>
+                <p class="text-sm text-slate-500 italic">Complete a quiz to see your history here.</p>
+            </div>
+        </div>
+
     </div>
 </div>
