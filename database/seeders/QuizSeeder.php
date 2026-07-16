@@ -13,7 +13,7 @@ class QuizSeeder extends Seeder
     public function run(): void
     {
         // Ensure you have at least one admin/lecturer and one group
-        $creator = User::where('email', 'admin@smartforum.com')->first();
+        $creator = User::where('email', 'testlecturer2@gmail.com')->first();
         $group = Group::first();
 
         if (!$creator || !$group) {

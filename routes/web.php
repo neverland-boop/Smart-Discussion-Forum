@@ -47,4 +47,7 @@ Route::middleware(['auth', 'role:lecturer'])->group(function () {
     Volt::route('/lecturer/grades', 'lecturer.grades')->name('lecturer.grades');
 });
 
+Volt::route('register/lecturer', 'pages.auth.register-lecturer')
+    ->middleware(['auth', 'role:admin']) 
+    ->name('register.lecturer');
 require __DIR__.'/auth.php';

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Group;
 use App\Models\Quiz;
+use App\Models\Post;
 
 new class extends Component {
     // Stat Cards
@@ -53,9 +54,9 @@ new class extends Component {
         $this->avgScore = $average ? round($average, 1) : 0;
 
         // 4. Fetch Unread Messages
-        if (method_exists($user, 'unreadNotifications')) {
-            $this->unreadMsgsCount = $user->unreadNotifications()->count();
-        }
+        $this->unreadMsgsCount = Post::where('created_at', '>=', now()->subDays(7))
+            ->where('user_id', '!=', $user->id) // Don't count their own posts
+            ->count();
 
         // 5. Recent Activity Placeholder
         $this->recentActivities = collect([]); 
@@ -105,7 +106,7 @@ new class extends Component {
         <!-- Unread Msgs -->
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-sm flex flex-col justify-between">
             <div class="flex justify-between items-center text-slate-400">
-                <span class="text-xs font-semibold uppercase tracking-wider">Unread Msgs</span>
+                <span class="text-xs font-semibold uppercase tracking-wider">Unread Msgs (7days)</span>
                 <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
             </div>
             <p class="text-3xl font-bold text-white mt-4">{{ $unreadMsgsCount }}</p>
@@ -128,7 +129,6 @@ new class extends Component {
                             <h3 class="text-white font-bold">{{ $group->name }}</h3>
                             <p class="text-slate-400 text-sm">Group ID: {{ $group->id }}</p>
                         </div>
-                        <a href="#" class="text-blue-400 hover:text-blue-300 transition text-sm">View →</a>
                     </div>
                 @endforeach
             </div>

@@ -1,14 +1,24 @@
 <?php
 use Livewire\Volt\Component;
+use Livewire\Attributes\Layout;
 use App\Services\QuizService;
 use Illuminate\Support\Facades\Auth;
 
-new class extends Component {
+new #[Layout('layouts.app')] class extends Component {
     public function with(QuizService $quizService): array
     {
+        $user = Auth::user();
+        
+        // Fetch all quiz IDs the user has already marked
+        $completedQuizIds = \App\Models\Mark::where('user_id', $user->id)
+            ->pluck('quiz_id')
+            ->toArray();
+
         return [
             'upcomingQuizzes' => $quizService->getAvailableQuizzes(),
-            'stats' => $quizService->getUserStats(Auth::user()),
+            'stats' => $quizService->getUserStats($user),
+            'recentResults' => $quizService->getRecentResults($user, 5),
+            'completedQuizIds' => $completedQuizIds, // Pass this to the view
         ];
     }
 }; ?>
@@ -21,7 +31,15 @@ new class extends Component {
         </div>
     </div>
 
-    <!-- Stats Row: Fills the top space nicely -->
+    <!-- Flash Message for successful submission -->
+    @if (session()->has('success'))
+        <div class="mb-8 p-4 bg-green-900/50 border border-green-500 rounded-xl text-green-400 font-medium flex items-center gap-3">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <!-- Stats Row -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-lg">
             <div class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Quizzes Completed</div>
@@ -40,7 +58,7 @@ new class extends Component {
     <!-- Two-Column Layout -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- Main Content: Available Quizzes (Takes up 2/3 of the screen) -->
+        <!-- Main Content: Available Quizzes -->
         <div class="lg:col-span-2 space-y-6">
             <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
                 <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -50,8 +68,10 @@ new class extends Component {
             <div class="grid gap-4">
                 @forelse($upcomingQuizzes as $quiz)
                     @php
-                        // Check if the quiz has a start time and if it is still in the future
+                        // Check if the quiz is in the future
                         $isUpcoming = $quiz->start_time && now()->isBefore($quiz->start_time);
+                        // Check if the user has already completed this quiz
+                        $isCompleted = in_array($quiz->id, $completedQuizIds);
                     @endphp
 
                     <div class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700 p-6 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center transition duration-200">
@@ -70,7 +90,6 @@ new class extends Component {
                                     {{ $quiz->group->name ?? 'General' }}
                                 </span>
                                 
-                                <!-- Show the countdown if it is in the future -->
                                 @if($isUpcoming)
                                     <span class="flex items-center gap-1 text-orange-400">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -80,10 +99,14 @@ new class extends Component {
                             </div>
                         </div>
 
-                        <!-- Conditional Button Display -->
+                        <!-- Updated Conditional Button Display -->
                         @if($isUpcoming)
                             <button disabled class="px-6 py-2 bg-slate-700 text-slate-500 font-semibold rounded-lg shadow cursor-not-allowed border border-slate-600">
                                 Not Open Yet
+                            </button>
+                        @elseif($isCompleted)
+                            <button disabled class="px-6 py-2 bg-slate-800 text-slate-400 font-semibold rounded-lg border border-slate-700 cursor-not-allowed">
+                                Completed
                             </button>
                         @else
                             <a href="{{ route('quiz.attempt', ['id' => $quiz->id]) }}" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow transition">
@@ -101,8 +124,43 @@ new class extends Component {
             </div>
         </div>
 
-        <!-- Sidebar (Takes up 1/3 of the screen) -->
+        <!-- Sidebar -->
         <div class="space-y-6">
+            
+            <!-- Dynamic Recent Results Section -->
+            <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl">
+                <h3 class="text-white font-bold mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Recent Results
+                </h3>
+                
+                @if($recentResults->isEmpty())
+                    <p class="text-sm text-slate-500 italic">Complete a quiz to see your history here.</p>
+                @else
+                    <div class="space-y-3">
+                        @foreach($recentResults as $result)
+                            <div class="flex items-center justify-between p-3 rounded-lg bg-slate-900/50 border border-slate-700/50">
+                                <div>
+                                    <div class="text-sm font-bold text-slate-200 truncate max-w-[150px]" title="{{ $result->quiz->title }}">
+                                        {{ $result->quiz->title }}
+                                    </div>
+                                    <div class="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">
+                                        {{ $result->updated_at->format('M d, Y') }}
+                                    </div>
+                                </div>
+                                <div class="px-2.5 py-1 rounded-md font-bold text-sm border 
+                                    {{ $result->score >= 75 ? 'bg-green-900/30 text-green-400 border-green-500/30' : 
+                                      ($result->score >= 50 ? 'bg-yellow-900/30 text-yellow-400 border-yellow-500/30' : 
+                                      'bg-red-900/30 text-red-400 border-red-500/30') }}">
+                                    {{ $result->score }}%
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            <!-- Rules Box -->
             <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl">
                 <h3 class="text-white font-bold mb-4">Quiz Rules & Integrity</h3>
                 <ul class="space-y-3 text-sm text-slate-400">
@@ -119,12 +177,6 @@ new class extends Component {
                         Scores are final upon submission.
                     </li>
                 </ul>
-            </div>
-
-            <!-- Future Feature Placeholder -->
-            <div class="bg-slate-800/30 border border-slate-700/50 p-6 rounded-xl">
-                <h3 class="text-slate-300 font-bold mb-2">Recent Results</h3>
-                <p class="text-sm text-slate-500 italic">Complete a quiz to see your history here.</p>
             </div>
         </div>
 

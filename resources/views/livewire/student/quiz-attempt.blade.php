@@ -20,14 +20,32 @@ new #[Layout('layouts.app')] class extends Component {
         // 1. Load the Quiz and Questions
         $this->quiz = Quiz::with('questions')->findOrFail($id);
         $this->questions = $this->quiz->questions;
+
+        $existingAttempt = QuizAttempt::where('quiz_id', $this->quiz->id)
+        ->where('user_id', Auth::id())
+        ->whereNotNull('submitted_at')
+        ->first();
+
+    if ($existingAttempt) {
+        session()->flash('error', 'You have already submitted this quiz.');
+        return $this->redirect(route('quizzes'), navigate: true);
+    }
+
+    // Now find or create the active one
+    $this->attempt = QuizAttempt::firstOrCreate(
+        ['quiz_id' => $this->quiz->id, 'user_id' => Auth::id(), 'submitted_at' => null],
+        ['start_time' => now()]
+    );
+        
         if ($this->quiz->start_time && now()->isBefore($this->quiz->start_time)) {
-                    session()->flash('error', 'This quiz has not started yet. Please wait until ' . \Carbon\Carbon::parse($this->quiz->start_time)->format('M d, Y h:i A'));
-                    return redirect()->route('dashboard'); // Redirect them back to the quiz list
-                }
-        // 2. Start or Resume the Attempt
+            session()->flash('error', 'This quiz has not started yet. Please wait until ' . \Carbon\Carbon::parse($this->quiz->start_time)->format('M d, Y h:i A'));
+            return redirect()->route('dashboard'); // Redirect them back to the quiz list
+        }
+        
+        // 2. Start or Resume the Attempt (Removed 'violations' default since we aren't tracking it in DB)
         $this->attempt = QuizAttempt::firstOrCreate(
             ['quiz_id' => $this->quiz->id, 'user_id' => Auth::id(), 'submitted_at' => null],
-            ['start_time' => now(), 'violations' => 0]
+            ['start_time' => now()] 
         );
 
         // 3. Calculate accurate time remaining
@@ -55,40 +73,33 @@ new #[Layout('layouts.app')] class extends Component {
         $this->markedForReview[$currentId] = !$this->markedForReview[$currentId];
     }
 
-    public function logViolation() 
-    {
-        // Increment the violation counter in the database
-        $this->attempt->increment('violations');
-    }
+    // NOTE: logViolation() method has been completely removed to prevent the 500 DB Error.
 
-    public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
-    {
-        // Pass the answers to the QuizService
-        $score = $quizService->submitAttempt($this->attempt->id, $this->answers, $autoSubmitted);
-        
-        session()->flash('success', "Quiz submitted! Your score is pending review or calculated as: $score");
-        return redirect()->route('dashboard'); 
-    }
+public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
+{
+    $quizService->submitAttempt($this->attempt->id, $this->answers, $autoSubmitted);
+    
+    session()->flash('success', "Quiz submitted successfully!");
+
+    // Use this specific redirect syntax for Volt components:
+    return $this->redirect(route('quizzes'), navigate: true);
+}
 }; ?>
 
 <!-- Full-screen layout to enforce the lockdown requirement -->
 <div x-data="{
     trackViolation() {
-        // Log the violation in the database immediately
-        @this.call('logViolation');
-        
-        // Open the global modal instead of native alert
+        // Open the global modal to WARN the user, without hitting the database
         $dispatch('open-confirm', { 
-            title: 'Academic Violation Detected', 
-            message: 'Leaving the quiz window is recorded. If you continue to navigate away, your quiz will be auto-submitted.', 
+            title: 'Academic Warning', 
+            message: 'Navigating away from the quiz window is strictly prohibited. Please stay on this page to complete your attempt.', 
             callback: () => { 
-                // Auto-submit if they insist on leaving
-                @this.call('submitAttempt', true); 
+                // Do nothing, just let them close the warning and return to the quiz
             } 
         });
     }
 }" @blur.window="trackViolation()">
-
+<div>
     <div class="min-h-screen h-screen w-full bg-slate-900 flex flex-col font-sans text-slate-50 overflow-hidden" 
          x-data="quizAttempt({{ $timeRemaining }})">
         
@@ -99,7 +110,7 @@ new #[Layout('layouts.app')] class extends Component {
                 <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
-                <span class="font-semibold text-sm">Exit & Submit</span>
+                <span class="font-semibold text-sm">Exit</span>
             </button>
 
             <!-- Quiz Title -->
@@ -163,100 +174,114 @@ new #[Layout('layouts.app')] class extends Component {
             </aside>
 
             <!-- CENTER: Question Area -->
-            <!-- CENTER: Question Area -->
-<main class="flex-1 flex flex-col bg-slate-900 overflow-y-auto">
-    @php
-        // Safely grab the question, re-indexing keys to ensure 0, 1, 2... format
-        $currentQuestion = collect($questions)->values()->get($currentQuestionIndex);
-    @endphp
-
-    @if($currentQuestion)
-        <div class="max-w-4xl mx-auto w-full flex-1 flex flex-col p-8 lg:p-12">
-            
-            <!-- Question Header -->
-            <div class="mb-10">
-                <h3 class="text-green-400 font-bold text-sm tracking-widest uppercase mb-4">
-                    Question {{ $currentQuestionIndex + 1 }} of {{ count($questions) }}
-                </h3>
-                <p class="text-2xl text-white font-medium leading-relaxed">
-                    {{ $currentQuestion->text ?? '' }}
-                </p>
-            </div>
-
-            <!-- Multiple Choice Options -->
-            <div class="space-y-4 flex-1">
+            <main class="flex-1 flex flex-col bg-slate-900 overflow-y-auto">
                 @php
-                    $options = is_string($currentQuestion->options) 
-                        ? json_decode($currentQuestion->options, true) 
-                        : $currentQuestion->options;
+                    // Safely grab the question, re-indexing keys to ensure 0, 1, 2... format
+                    $currentQuestion = collect($questions)->values()->get($currentQuestionIndex);
                 @endphp
 
-                @if($options)
-                    @foreach($options as $key => $optionText)
-                        <label class="flex items-center gap-4 p-5 rounded-xl border transition cursor-pointer group
-                            {{ ($answers[$currentQuestion->id] ?? null) === $key ? 'border-green-600 bg-green-900/10' : 'border-slate-700 bg-slate-800/50 hover:bg-slate-800 hover:border-green-500/50' }}">
-                            
-                            <input type="radio" 
-                                   wire:model.live="answers.{{ $currentQuestion->id }}" 
-                                   value="{{ $key }}" 
-                                   class="w-5 h-5 text-green-600 bg-slate-900 border-slate-500 focus:ring-green-600 focus:ring-offset-slate-800">
-                            
-                            <span class="text-lg {{ ($answers[$currentQuestion->id] ?? null) === $key ? 'text-white font-medium' : 'text-slate-300 group-hover:text-white' }}">
-                                {{ $key }}. {{ $optionText }}
-                            </span>
-                        </label>
-                    @endforeach
-                @endif
-            </div>
+                @if($currentQuestion)
+                    <div class="max-w-4xl mx-auto w-full flex-1 flex flex-col p-8 lg:p-12">
+                        
+                        <!-- Question Header -->
+                        <div class="mb-10">
+                            <h3 class="text-green-400 font-bold text-sm tracking-widest uppercase mb-4">
+                                Question {{ $currentQuestionIndex + 1 }} of {{ count($questions) }}
+                            </h3>
+                            <p class="text-2xl text-white font-medium leading-relaxed">
+                                {{ $currentQuestion->text ?? '' }}
+                            </p>
+                        </div>
 
-            <!-- Bottom Navigation -->
-            <div class="mt-12 pt-6 border-t border-slate-800 flex items-center justify-between">
-                <button 
-                    wire:click="setQuestion({{ $currentQuestionIndex - 1 }})"
-                    @if($currentQuestionIndex === 0) disabled @endif
-                    class="px-6 py-3 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    Previous
-                </button>
-                
-                @if($currentQuestionIndex < count($questions) - 1)
-                    <button 
-                        wire:click="setQuestion({{ $currentQuestionIndex + 1 }})"
-                        class="px-8 py-3 rounded-lg bg-green-600 text-white font-bold hover:bg-green-500 transition shadow-lg shadow-green-900/20 flex items-center gap-2">
-                        Next
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </button>
-                @endif
-            </div>
-            
-            <!-- Submit Action -->
-            <div class="mt-6 flex justify-end">
-                <!-- Ensure @click points to submitQuiz() defined in your Alpine data -->
-                <button @click="submitQuiz()" 
-                        type="button" 
-                        class="w-full md:w-auto px-10 py-3.5 rounded-lg bg-green-700 text-white font-extrabold tracking-wide hover:bg-green-600 transition shadow-xl flex items-center justify-center gap-2 border border-green-500">
-                    <svg class="w-5 h-5 transform -rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                    Submit Quiz
-                </button>
-            </div>
+                        <!-- Multiple Choice Options -->
+                        <div class="space-y-4 flex-1">
+                            @php
+                                $options = is_string($currentQuestion->options) 
+                                    ? json_decode($currentQuestion->options, true) 
+                                    : $currentQuestion->options;
+                            @endphp
 
-        </div>
-    @else
-        <!-- Friendly Empty State if Quiz has no questions -->
-        <div class="flex-1 flex flex-col items-center justify-center p-8">
-            <svg class="w-16 h-16 text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <h2 class="text-2xl font-bold text-white mb-2">No Questions Found</h2>
-            <p class="text-slate-400 text-center max-w-md">Your instructor hasn't added any questions to this quiz yet.</p>
-            <button @click="submitQuiz()" class="mt-6 px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition">Exit Quiz</button>
-        </div>
-    @endif
-</main>
+                            @if($options)
+                                @foreach($options as $key => $optionText)
+                                    <label class="flex items-center gap-4 p-5 rounded-xl border transition cursor-pointer group
+                                        {{ ($answers[$currentQuestion->id] ?? null) === $key ? 'border-green-600 bg-green-900/10' : 'border-slate-700 bg-slate-800/50 hover:bg-slate-800 hover:border-green-500/50' }}">
+                                        
+                                        <input type="radio" 
+                                               wire:model.live="answers.{{ $currentQuestion->id }}" 
+                                               value="{{ $key }}" 
+                                               class="w-5 h-5 text-green-600 bg-slate-900 border-slate-500 focus:ring-green-600 focus:ring-offset-slate-800">
+                                        
+                                        <span class="text-lg {{ ($answers[$currentQuestion->id] ?? null) === $key ? 'text-white font-medium' : 'text-slate-300 group-hover:text-white' }}">
+                                            {{ $key }}. {{ $optionText }}
+                                        </span>
+                                    </label>
+                                @endforeach
+                            @endif
+                        </div>
+
+                        <!-- Bottom Navigation -->
+                        <div class="mt-12 pt-6 border-t border-slate-800 flex items-center justify-between">
+                            <button 
+                                wire:click="setQuestion({{ $currentQuestionIndex - 1 }})"
+                                @if($currentQuestionIndex === 0) disabled @endif
+                                class="px-6 py-3 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                Previous
+                            </button>
+                            
+                            @if($currentQuestionIndex < count($questions) - 1)
+                                <button 
+                                    wire:click="setQuestion({{ $currentQuestionIndex + 1 }})"
+                                    class="px-8 py-3 rounded-lg bg-green-600 text-white font-bold hover:bg-green-500 transition shadow-lg shadow-green-900/20 flex items-center gap-2">
+                                    Next
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                            @endif
+                        </div>
+                        
+                        <!-- Submit Action -->
+                        <div class="mt-6 flex justify-end">
+                            <button @click="submitQuiz()" 
+                                    type="button" 
+                                    class="w-full md:w-auto px-10 py-3.5 rounded-lg bg-green-700 text-white font-extrabold tracking-wide hover:bg-green-600 transition shadow-xl flex items-center justify-center gap-2 border border-green-500">
+                                <svg class="w-5 h-5 transform -rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                                Submit Quiz
+                            </button>
+                        </div>
+
+                    </div>
+                @else
+                    <!-- Friendly Empty State if Quiz has no questions -->
+                    <div class="flex-1 flex flex-col items-center justify-center p-8">
+                        <svg class="w-16 h-16 text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h2 class="text-2xl font-bold text-white mb-2">No Questions Found</h2>
+                        <p class="text-slate-400 text-center max-w-md">Your instructor hasn't added any questions to this quiz yet.</p>
+                        <button @click="submitQuiz()" class="mt-6 px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition">Exit Quiz</button>
+                    </div>
+                @endif
+            </main>
 
         </div>
     </div>
 </div>
+<div x-data="{ showModal: false }" @open-submit-modal.window="showModal = true" x-show="showModal" 
+     class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    
+    <div class="bg-slate-800 p-8 rounded-xl border border-slate-700 w-full max-w-sm shadow-2xl">
+        <h3 class="text-xl font-bold text-white mb-2">Submit Quiz?</h3>
+        <p class="text-slate-400 mb-6">Are you sure? You cannot change your answers after submission.</p>
+        
+        <div class="flex gap-3">
+            <button @click="showModal = false" class="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600">Cancel</button>
+            <button @click="@this.call('submitAttempt', false); showModal = false" 
+                    class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500">
+                Yes, Submit
+            </button>
+        </div>
+    </div>
+</div>
+    </div>
 
-<!-- Alpine.js script to handle the strict countdown requirement -->
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('quizAttempt', (initialSeconds) => ({
@@ -274,7 +299,7 @@ new #[Layout('layouts.app')] class extends Component {
                         }
                     }, 1000);
                 } else {
-                    this.forceSubmit(); // Submit immediately if loaded with 0 time
+                    this.forceSubmit();
                 }
             },
 
@@ -283,29 +308,22 @@ new #[Layout('layouts.app')] class extends Component {
                 const h = Math.floor(seconds / 3600);
                 const m = Math.floor((seconds % 3600) / 60);
                 const s = seconds % 60;
-                return [
-                    h > 0 ? String(h).padStart(2, '0') : null,
-                    String(m).padStart(2, '0'),
-                    String(s).padStart(2, '0')
-                ].filter(Boolean).join(':');
+                return [h > 0 ? String(h).padStart(2, '0') : null, String(m).padStart(2, '0'), String(s).padStart(2, '0')]
+                    .filter(Boolean).join(':');
             },
 
-// Inside your quiz-attempt.blade.php script
-        submitQuiz() {
-            this.$dispatch('open-confirm', {
-                title: 'Submit Quiz?',
-                message: 'Are you sure? You cannot change your answers after submission.',
-                callback: () => {
-                    clearInterval(this.timerInterval);
-                    @this.call('submitAttempt', false);
-                }
-            });
-        }
+ // Inside your Alpine.data('quizAttempt', ...) object
 
-            forceSubmit() {
-                alert('Time has expired. Your quiz will now be submitted automatically.');
-                @this.call('submitAttempt', true);
-            }
+submitQuiz() {
+    // Instead of browser confirm(), we dispatch the event to show our custom modal
+    this.$dispatch('open-submit-modal');
+},
+
+forceSubmit() {
+    clearInterval(this.timerInterval);
+    // Use @this to call the Livewire method
+    @this.call('submitAttempt', true);
+}
         }));
     });
 </script>

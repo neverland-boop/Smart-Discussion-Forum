@@ -260,45 +260,78 @@ new class extends Component {
                     </button>
                 </div>
 
-                <!-- Messages Area -->
-                <div wire:poll.2s.visible="refreshMessages" x-data="{ scroll() { $el.scrollTop = $el.scrollHeight; } }" x-init="scroll()" x-on:message-sent.window="setTimeout(scroll, 100)" class="flex-1 overflow-y-auto p-6 space-y-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700 hover:[&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full">
-                    @forelse($messages as $message)
-                        <div wire:key="msg-{{ $message['id'] }}" class="flex {{ $message['is_mine'] ? 'justify-end' : 'justify-start' }}">
-                            <div class="max-w-[80%] lg:max-w-[70%]">
-                                @if(!$message['is_mine'])
-                                    <span class="text-xs text-slate-400 ml-1 mb-1 block">{{ $message['sender'] }}</span>
-                                @else
-                                    <span class="text-xs text-slate-400 mr-1 mb-1 block text-right">You</span>
-                                @endif
+<!-- Messages Area -->
+<div wire:poll.2s.visible="refreshMessages" 
+     x-data="{ scroll() { $el.scrollTop = $el.scrollHeight; } }" 
+     x-init="scroll()" 
+     x-on:message-sent.window="setTimeout(scroll, 100)" 
+     class="flex-1 overflow-y-auto p-6 space-y-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700 hover:[&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full">
+    
+    @forelse($messages as $message)
+        <!-- Alpine Component for Sharing Logic & Hover State -->
+        <div wire:key="msg-{{ $message['id'] }}" 
+             x-data="{
+                 shareText: '{{ addslashes($message['text']) }}',
+                 shareUrl: window.location.href,
+                 triggerShare() {
+                     if (navigator.share) {
+                         // Native mobile/macOS share sheet
+                         navigator.share({
+                             title: 'Forwarded Message',
+                             text: this.shareText,
+                             url: this.shareUrl
+                         }).catch(console.error);
+                     } else {
+                         // Professional Desktop Fallback (Twitter/X Window)
+                         window.open(
+                             'https://twitter.com/intent/tweet?text=' + encodeURIComponent('Check out this post: ' + this.shareText) + '&url=' + encodeURIComponent(this.shareUrl),
+                             '_blank',
+                             'width=600,height=400,scrollbars=yes'
+                         );
+                     }
+                 }
+             }"
+             class="group flex {{ $message['is_mine'] ? 'justify-end' : 'justify-start' }}">
+            
+            <div class="max-w-[90%] lg:max-w-[75%] flex flex-col {{ $message['is_mine'] ? 'items-end' : 'items-start' }}">
+                
+                <!-- Sender Name -->
+                @if(!$message['is_mine'])
+                    <span class="text-xs text-slate-400 ml-1 mb-1 block">{{ $message['sender'] }}</span>
+                @else
+                    <span class="text-xs text-slate-400 mr-1 mb-1 block text-right">You</span>
+                @endif
 
-                                <div class="p-3 rounded-2xl shadow-sm {{ $message['is_mine'] ? 'bg-green-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-tl-none' }}">
-                                    {{ $message['text'] }}
-                                </div>
-                                
-                                <span class="text-[10px] text-slate-500 mt-1 block {{ $message['is_mine'] ? 'text-right mr-1' : 'ml-1' }}">{{ $message['time'] }}</span>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="flex flex-col items-center justify-center h-full text-slate-500">
-                            <svg class="w-12 h-12 mb-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                            <p>No messages yet. Start the conversation!</p>
-                        </div>
-                    @endforelse
-                </div>
+                <!-- Bubble & Action Menu Wrapper -->
+                <div class="flex items-center gap-2 {{ $message['is_mine'] ? 'flex-row-reverse' : 'flex-row' }}">
+                    
+                    <!-- Message Bubble -->
+                    <div class="p-3 rounded-2xl shadow-sm {{ $message['is_mine'] ? 'bg-green-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-tl-none' }}">
+                        {{ $message['text'] }}
+                    </div>
 
-                <!-- Message Input -->
-                <div class="p-4 bg-slate-800 border-t border-slate-700">
-                    <form wire:submit="sendMessage" class="flex items-end gap-2 relative">
-                        <button type="button" class="p-2 text-slate-400 hover:text-green-400 transition rounded-full hover:bg-slate-700 mb-1">
-                            <svg class="w-6 h-6 transform rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-                        </button>
-                        <textarea wire:model="newMessage" rows="1" placeholder="Type a message..." class="flex-1 bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:border-green-500 resize-none shadow-inner"></textarea>
-                        <button type="submit" class="p-3 bg-green-600 hover:bg-green-500 text-white rounded-xl transition shadow-lg flex-shrink-0 mb-1">
-                            <svg class="w-5 h-5 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-                        </button>
-                        @error('newMessage') <span class="absolute -top-6 left-12 text-xs text-red-500 font-bold">{{ $message }}</span> @enderror
-                    </form>
+                    <!-- Forward/Share Button (Hidden until hover/tap) -->
+                    <button type="button" 
+                            @click="triggerShare()"
+                            title="Forward Message"
+                            class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-full hover:bg-slate-700 text-slate-400 hover:text-blue-400 focus:outline-none focus:opacity-100">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316M15 12a3 3 0 100-6 3 3 0 000 6zm0 0a3 3 0 100 6 3 3 0 000-6z"></path>
+                        </svg>
+                    </button>
                 </div>
+                
+                <!-- Timestamp -->
+                <span class="text-[10px] text-slate-500 mt-1 block {{ $message['is_mine'] ? 'mr-1' : 'ml-1' }}">{{ $message['time'] }}</span>
+            </div>
+        </div>
+    @empty
+        <div class="flex flex-col items-center justify-center h-full text-slate-500">
+            <svg class="w-12 h-12 mb-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            <p>No messages yet. Start the conversation!</p>
+        </div>
+    @endforelse
+</div>
 
                 <!-- SLIDE-OVER DRAWER: Active Members & Pending Requests -->
                 <div x-show="showMembers" x-transition.opacity @click="showMembers = false" class="absolute inset-0 bg-slate-900/60 z-40" style="display: none;"></div>

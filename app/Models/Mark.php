@@ -3,29 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Mark extends Model
 {
-    protected $fillable = [
-        'user_id',
-        'quiz_id',
-        'score',
-    ];
+    // 1. Allow mass assignment for these columns
+    protected $fillable = ['user_id', 'quiz_id', 'score'];
 
-    /**
-     * Get the student who owns this mark.
-     */
-    public function student(): BelongsTo
+    // 2. Define relationships needed for the dashboard
+    public function quiz()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Quiz::class);
     }
 
-    /**
-     * Get the quiz that this mark belongs to.
-     */
-    public function quiz(): BelongsTo
+    public function student()
     {
-        return $this->belongsTo(Quiz::class, 'quiz_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

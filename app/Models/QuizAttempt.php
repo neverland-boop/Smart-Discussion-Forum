@@ -6,9 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class QuizAttempt extends Model
 {
+    // Ensure 'answers' and 'auto_submitted' are allowed to be saved!
     protected $fillable = [
-        'quiz_id', 'user_id', 'start_time', 'submitted_at', 
-        'answers', 'auto_submitted'
+        'quiz_id', 
+        'user_id', 
+        'start_time', 
+        'submitted_at', 
+        'answers', 
+        'auto_submitted'
     ];
 
     protected $casts = [
@@ -17,4 +22,13 @@ class QuizAttempt extends Model
         'auto_submitted' => 'boolean',
         'answers'        => 'array', 
     ];
+
+    public function quiz()
+    {
+        return $this->belongsTo(Quiz::class);
+    }
 }
+
+
+
+

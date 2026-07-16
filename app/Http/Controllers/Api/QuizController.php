@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\QuizResource;
 use App\Services\QuizService;
 use Illuminate\Http\Request;
+use App\Models\Mark;
+use App\Http\Resources\MarkResource;
 
 class QuizController extends Controller
 {
@@ -36,6 +38,14 @@ class QuizController extends Controller
     // POST /api/attempts/{attempt}/submit
     public function submit(Request $request, $attemptId)
     {
+    $attempt = QuizAttempt::with('quiz')->findOrFail($attemptId);
+    
+    // SERVER-SIDE PROTECTION: 
+    // Even if the user submits late, use the quiz's fixed end time
+    $quizEndTime = $attempt->start_time->addMinutes($attempt->quiz->time_limit);
+    
+    // If they submit after the deadline, force the auto_submitted flag
+    $finalSubmitTime = now()->greaterThan($quizEndTime) ? $quizEndTime : now();
         $validated = $request->validate([
             'answers'        => 'required|array',
             'auto_submitted' => 'boolean'
@@ -54,30 +64,31 @@ class QuizController extends Controller
         ]);
     }
 
-    // GET /api/quizzes/{quiz}/report
-    public function report($quizId)
-    {
-        // Fetch all marks for this specific quiz
-        $marks = Mark::where('quiz_id', $quizId)->with('student')->get();
-        
-        return MarkResource::collection($marks);
+public function report($quizId)
+{
+    // The requirement: "all members... see the performance report"
+    // We add a check to ensure the quiz has actually ended before showing the report
+    $quiz = \App\Models\Quiz::findOrFail($quizId);
+    
+    if (now()->isBefore($quiz->start_time->addMinutes($quiz->time_limit))) {
+        return response()->json(['message' => 'Report not available until quiz concludes.'], 403);
     }
 
+    $marks = Mark::where('quiz_id', $quizId)->with('student')->get();
+    return MarkResource::collection($marks);
+}
 public function show($id)
-    {
-        $quiz = \App\Models\Quiz::with('questions')->findOrFail($id);
+{
+    $quiz = \App\Models\Quiz::with('questions')->findOrFail($id);
 
-        // Block API access if it's too early
-        if ($quiz->start_time && now()->isBefore($quiz->start_time)) {
-            return response()->json([
-                'success' => false, 
-                'message' => 'This quiz has not started yet.'
-            ], 403);
-        }
-
-        return response()->json([
-            'success' => true,
-            'data' => $quiz
-        ]);
-    }
+    // Provide the server's authoritative time
+    return response()->json([
+        'success' => true,
+        'data' => [
+            'quiz' => new QuizResource($quiz),
+            'server_time' => now(), // Essential for syncing the countdown
+            'ends_at' => $quiz->start_time->addMinutes($quiz->time_limit)
+        ]
+    ]);
+}
 }
