@@ -23,17 +23,10 @@ new #[Layout('layouts.app')] class extends Component {
     }
 }; ?>
 
-<<<<<<< HEAD
 <div class="p-4 sm:p-8 max-w-7xl mx-auto min-h-screen">
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-8 border-b border-slate-700 pb-4">
         <div>
             <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-wide">Quiz Center</h1>
-=======
-<div class="p-8 max-w-7xl mx-auto min-h-screen">
-    <div class="flex justify-between items-end mb-8 border-b border-slate-700 pb-4">
-        <div>
-            <h1 class="text-3xl font-bold text-white tracking-wide">Quiz Center</h1>
->>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
             <p class="text-slate-400 mt-1">Test your knowledge and track your progress.</p>
         </div>
     </div>

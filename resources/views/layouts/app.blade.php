@@ -14,7 +14,6 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-<<<<<<< HEAD
 <body class="font-sans antialiased text-slate-50" x-data="{ sidebarOpen: false }">
     <div class="flex h-screen bg-slate-800 overflow-hidden">
         <!-- Sidebar -->
@@ -54,34 +53,6 @@
                             <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Moderation</a>
                         @endif
 
-=======
-<body class="font-sans antialiased text-slate-50">
-    <div class="flex h-screen bg-slate-800 overflow-hidden">
-        <!-- Sidebar -->
-        @if(!request()->routeIs('quiz.attempt'))
-            <aside class="w-64 h-full bg-slate-900 border-r border-slate-800 flex flex-col justify-between flex-shrink-0 z-50 shadow-2xl">
-                <div>
-                    <div class="h-16 flex items-center px-6 border-b border-slate-800">
-                        <span class="text-white font-bold text-lg tracking-wider">SMART DISCUSSION</span>
-                    </div>
-                    <nav class="p-4 space-y-2 mt-4">
-                        <a href="{{ route('dashboard') }}" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('dashboard') ? 'bg-green-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-green-400' }}">Dashboard</a>
-                        @if(auth()->user()->hasAnyRole(['student']))
-                        <a href="{{ route('forums') }}" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('forums') ? 'bg-green-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-green-400' }}">Discussions</a>
-                        <a href="{{ route('quizzes') }}" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('quizzes') ? 'bg-green-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-green-400' }}">Quizzes</a>
-                        @endif
-                        @if(auth()->user()->hasAnyRole(['lecturer']))
-                            <a href="{{ route('lecturer.students') }}" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Students</a>
-                            <a href="{{ route('lecturer.grades') }}" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Grades</a>
-                        @endif
-                        @if(auth()->user()->hasAnyRole(['admin', 'lecturer']))
-                            <a href="#" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Quiz Control</a>
-                            <a href="#" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Reports</a>
-                        @endif
-                         @if(auth()->user()->hasAnyRole(['admin']))
-                            <a href="#" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Moderation</a>
-                        @endif
->>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                     </nav>
                 </div>
 
@@ -89,17 +60,10 @@
                 <div class="p-6 border-t border-slate-800">
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" class="flex items-center gap-3 w-full">
-<<<<<<< HEAD
                             <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center font-bold text-white shrink-0">{{ substr(Auth::user()->name, 0, 1) }}</div>
                             <div class="flex flex-col text-left min-w-0">
                                 <span class="text-sm font-semibold text-white truncate">{{ Auth::user()->name }}</span>
                                 <span class="text-xs text-slate-400 truncate">Settings & Profile</span>
-=======
-                            <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center font-bold text-white">{{ substr(Auth::user()->name, 0, 1) }}</div>
-                            <div class="flex flex-col text-left">
-                                <span class="text-sm font-semibold text-white">{{ Auth::user()->name }}</span>
-                                <span class="text-xs text-slate-400">Settings & Profile</span>
->>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                             </div>
                         </button>
                         <div x-show="open" @click.away="open = false" class="absolute bottom-16 left-0 w-full bg-slate-800 border border-slate-700 rounded-lg p-2 z-50">
@@ -116,7 +80,6 @@
         @endif
 
         <!-- Main Content Area -->
-<<<<<<< HEAD
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
             <!-- Mobile top bar with hamburger -->
             @if(!request()->routeIs('quiz.attempt'))
@@ -137,12 +100,3 @@
     @stack('scripts')
 </body>
 </html>
-=======
-        <main class="flex-1 overflow-y-auto bg-slate-800">
-            {{ $slot }}
-        </main>
-    </div>
-    @stack('scripts')
-</body>
-</html>
->>>>>>> 655dacc40daca71479b014ca04523b096e7faf09

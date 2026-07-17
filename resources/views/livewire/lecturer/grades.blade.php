@@ -11,17 +11,10 @@ new #[Layout('components.layouts.app')] class extends Component {
     ];
 }; ?>
 
-<<<<<<< HEAD
 <div class="p-4 sm:p-8 max-w-7xl mx-auto min-h-screen">
     <!-- Header -->
     <div class="mb-8">
         <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-wide">Grades Ledger</h1>
-=======
-<div class="p-8 max-w-7xl mx-auto min-h-screen">
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-white tracking-wide">Grades Ledger</h1>
->>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
         <p class="text-slate-400 mt-1">Review student performance data, edit exam score matrices, and track changes in real time.</p>
     </div>
 
@@ -37,7 +30,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                 </button>
             </div>
             
-<<<<<<< HEAD
             <div class="overflow-x-auto">
                 <table class="w-full text-left min-w-[560px]">
                     <thead class="text-slate-400 text-xs uppercase border-b border-slate-700">
@@ -71,39 +63,6 @@ new #[Layout('components.layouts.app')] class extends Component {
                     </tbody>
                 </table>
             </div>
-=======
-            <table class="w-full text-left">
-                <thead class="text-slate-400 text-xs uppercase border-b border-slate-700">
-                    <tr>
-                        <th class="p-6">Student Details</th>
-                        <th class="p-6">Assessment Activity</th>
-                        <th class="p-6">Raw Score (/100)</th>
-                        <th class="p-6">Calculated Grade</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-700 text-sm">
-                    @foreach($grades as $grade)
-                    <tr class="hover:bg-slate-700/30 transition" x-show="expanded || {{ $loop->index }} < 2">
-                        <td class="p-6">
-                            <div class="font-bold text-white">{{ $grade['name'] }}</div>
-                            <div class="text-slate-500 text-xs">{{ $grade['id'] }}</div>
-                        </td>
-                        <td class="p-6 text-slate-300">{{ $grade['activity'] }}</td>
-                        <td class="p-6 font-mono text-white">{{ $grade['score'] }} / 100</td>
-                        <td class="p-6">
-                            <span class="inline-block px-3 py-1 rounded font-bold text-xs 
-                                {{ $grade['grade'] === 'A' ? 'bg-green-600 text-white' : '' }}
-                                {{ $grade['grade'] === 'B' ? 'bg-blue-600 text-white' : '' }}
-                                {{ $grade['grade'] === 'C' ? 'bg-yellow-600 text-white' : '' }}
-                                {{ $grade['grade'] === 'F' ? 'bg-red-600 text-white' : '' }}">
-                                {{ $grade['grade'] }}
-                            </span>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
->>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
         </div>
 
         <!-- Grading Scale Matrix (Bottom Section) -->

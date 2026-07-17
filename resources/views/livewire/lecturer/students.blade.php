@@ -11,17 +11,10 @@ new #[Layout('components.layouts.app')] class extends Component {
     ];
 }; ?>
 
-<<<<<<< HEAD
 <div class="p-4 sm:p-8 max-w-7xl mx-auto min-h-screen">
     <!-- Header -->
     <div class="mb-8">
         <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-wide">Students Directory</h1>
-=======
-<div class="p-8 max-w-7xl mx-auto min-h-screen">
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-white tracking-wide">Students Directory</h1>
->>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
         <p class="text-slate-400 mt-1">Manage active student profiles, review academic standings, and track platform enrollment records.</p>
     </div>
 
@@ -46,21 +39,12 @@ new #[Layout('components.layouts.app')] class extends Component {
             </div>
             
             <div class="overflow-x-auto">
-<<<<<<< HEAD
                 <table class="w-full text-left min-w-[480px]">
                     <thead class="text-slate-400 text-xs uppercase border-b border-slate-700">
                         <tr>
                             <th class="p-3 sm:p-6">Student Details</th>
                             <th class="p-3 sm:p-6">Email Address</th>
                             <th class="p-3 sm:p-6 text-center">Standing</th>
-=======
-                <table class="w-full text-left">
-                    <thead class="text-slate-400 text-xs uppercase border-b border-slate-700">
-                        <tr>
-                            <th class="p-6">Student Details</th>
-                            <th class="p-6">Email Address</th>
-                            <th class="p-6 text-center">Standing</th>
->>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-700 text-sm">
@@ -71,21 +55,12 @@ new #[Layout('components.layouts.app')] class extends Component {
                             x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 transform -translate-y-2">
                             
-<<<<<<< HEAD
                             <td class="p-3 sm:p-6">
                                 <div class="font-bold text-white">{{ $student['name'] }}</div>
                                 <div class="text-slate-500 text-xs">{{ $student['id'] }}</div>
                             </td>
                             <td class="p-3 sm:p-6 text-slate-300">{{ $student['email'] }}</td>
                             <td class="p-3 sm:p-6 text-center">
-=======
-                            <td class="p-6">
-                                <div class="font-bold text-white">{{ $student['name'] }}</div>
-                                <div class="text-slate-500 text-xs">{{ $student['id'] }}</div>
-                            </td>
-                            <td class="p-6 text-slate-300">{{ $student['email'] }}</td>
-                            <td class="p-6 text-center">
->>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                                 <span class="px-3 py-1 rounded-full text-xs font-bold 
                                     {{ $student['standing'] === 'Excellent' ? 'bg-green-500/20 text-green-400' : '' }}
                                     {{ $student['standing'] === 'Good' ? 'bg-blue-500/20 text-blue-400' : '' }}
