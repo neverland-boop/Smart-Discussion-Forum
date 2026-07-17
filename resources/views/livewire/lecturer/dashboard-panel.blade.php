@@ -22,9 +22,15 @@ new #[Layout('components.layouts.app')] class extends Component {
 <div x-data="{ showCreateModal: false }" class="flex flex-col gap-8 max-w-5xl mx-auto">
 
     <!-- WELCOMING BANNER -->
+<<<<<<< HEAD
     <div class="bg-zinc-900 text-white rounded-2xl p-5 sm:p-8 border border-zinc-800 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-xl">
         <div>
             <h1 class="text-xl sm:text-2xl font-black">{{ $welcomeGreeting }}, {{ auth()->user()->name ?? 'Lecturer' }}!</h1>
+=======
+    <div class="bg-zinc-900 text-white rounded-2xl p-8 border border-zinc-800 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-xl">
+        <div>
+            <h1 class="text-2xl font-black">{{ $welcomeGreeting }}, {{ auth()->user()->name ?? 'Lecturer' }}!</h1>
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
             <p class="text-sm text-zinc-400">Welcome back. All forum channels and gateway monitoring systems are live.</p>
         </div>
         <div class="flex gap-6">
@@ -43,13 +49,22 @@ new #[Layout('components.layouts.app')] class extends Component {
     <div class="flex flex-col gap-8">
         
         <!-- SECTION 1: FORUMS -->
+<<<<<<< HEAD
         <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-8 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+=======
+        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm">
+            <div class="flex justify-between items-center mb-8">
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                 <div>
                     <h2 class="text-sm font-black uppercase text-zinc-900 dark:text-white tracking-widest">Active Discussion Forums</h2>
                     <p class="text-xs text-zinc-500 mt-1">Manage threads and reply interaction permissions.</p>
                 </div>
+<<<<<<< HEAD
                 <button @click="showCreateModal = true" class="w-full sm:w-auto bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold px-6 py-3 rounded-xl transition">+ Create New Channel</button>
+=======
+                <button @click="showCreateModal = true" class="bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold px-6 py-3 rounded-xl transition">+ Create New Channel</button>
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
             </div>
             
             <div class="grid md:grid-cols-2 gap-4">
@@ -67,7 +82,11 @@ new #[Layout('components.layouts.app')] class extends Component {
 
         <!-- SECTION 2: GATEWAY MONITORING -->
 <!-- SECTION 2: GATEWAY MONITORING (Matching your exact green) -->
+<<<<<<< HEAD
 <div class="bg-[#52c48a] rounded-2xl p-5 sm:p-8 shadow-lg">
+=======
+<div class="bg-[#52c48a] rounded-2xl p-8 shadow-lg">
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
     <div class="flex items-center gap-4 mb-8">
         <!-- Icon container uses a slightly darker shade for depth -->
         <div class="bg-[#3dae75] p-3 rounded-xl">
@@ -84,16 +103,26 @@ new #[Layout('components.layouts.app')] class extends Component {
 
     <div class="space-y-4">
         @foreach($pendingFlags as $flag)
+<<<<<<< HEAD
             <div class="bg-white rounded-xl p-4 sm:p-6 shadow-md flex flex-col md:flex-row gap-6 items-start md:items-center">
+=======
+            <div class="bg-white rounded-xl p-6 shadow-md flex flex-col md:flex-row gap-6 items-center">
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                 <div class="flex-1">
                     <span class="text-[10px] font-black text-red-600 uppercase bg-red-50 px-2 py-1 rounded">Flagged Content</span>
                     <div class="font-bold text-zinc-900 mt-2">User: {{ $flag['user'] }}</div>
                     <div class="text-sm text-zinc-600">{{ $flag['reason'] }}</div>
                     <div class="italic text-zinc-400 text-xs mt-1">"{{ $flag['preview'] }}"</div>
                 </div>
+<<<<<<< HEAD
                 <div class="flex gap-3 w-full md:w-auto">
                     <button class="flex-1 md:flex-none bg-zinc-100 text-zinc-600 text-xs font-bold px-6 py-3 rounded-lg hover:bg-zinc-200 transition">Dismiss</button>
                     <button class="flex-1 md:flex-none bg-red-600 text-white text-xs font-bold px-6 py-3 rounded-lg hover:bg-red-700 transition">Apply Ban</button>
+=======
+                <div class="flex gap-3">
+                    <button class="bg-zinc-100 text-zinc-600 text-xs font-bold px-6 py-3 rounded-lg hover:bg-zinc-200 transition">Dismiss</button>
+                    <button class="bg-red-600 text-white text-xs font-bold px-6 py-3 rounded-lg hover:bg-red-700 transition">Apply Ban</button>
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                 </div>
             </div>
         @endforeach

@@ -77,12 +77,21 @@ new class extends Component {
     }
 }; ?>
 
+<<<<<<< HEAD
 <div class="p-4 sm:p-6 space-y-8 bg-slate-900 min-h-screen text-slate-50">
     
     <!-- Page Header & Group Selector -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h2 class="text-xl sm:text-2xl font-bold tracking-wide">Dashboard & Analytics</h2>
         <select wire:model.live="selectedGroupId" class="w-full sm:w-auto bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-4 py-2 focus:ring-green-500 focus:border-green-500">
+=======
+<div class="p-6 space-y-8 bg-slate-900 min-h-screen text-slate-50">
+    
+    <!-- Page Header & Group Selector -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold tracking-wide">Dashboard & Analytics</h2>
+        <select wire:model.live="selectedGroupId" class="bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-4 py-2 focus:ring-green-500 focus:border-green-500">
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
             @foreach($groups as $group)
                 <option value="{{ $group->id }}">{{ $group->groupName }}</option>
             @endforeach

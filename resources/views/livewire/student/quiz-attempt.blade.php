@@ -104,6 +104,7 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
          x-data="quizAttempt({{ $timeRemaining }})">
         
         <!-- TOP NAVIGATION BAR -->
+<<<<<<< HEAD
         <header class="h-16 bg-green-700 flex items-center justify-between gap-3 px-4 sm:px-6 shadow-md z-20 shrink-0">
             <div class="flex items-center gap-3">
                 <!-- Mobile Question Nav Toggle (three-line hamburger) -->
@@ -127,6 +128,22 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
 
             <!-- Timer -->
             <div class="flex items-center gap-2 bg-green-900/40 px-3 sm:px-4 py-1.5 rounded-full border border-green-600/50 shadow-inner shrink-0">
+=======
+        <header class="h-16 bg-green-700 flex items-center justify-between px-6 shadow-md z-20 shrink-0">
+            <!-- Exit Quiz Button -->
+            <button @click="submitQuiz()" type="button" class="flex items-center gap-2 text-white/90 hover:text-white transition group">
+                <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span class="font-semibold text-sm">Exit</span>
+            </button>
+
+            <!-- Quiz Title -->
+            <h1 class="text-lg font-bold tracking-wide hidden md:block">{{ $quiz->title }}</h1>
+
+            <!-- Timer -->
+            <div class="flex items-center gap-2 bg-green-900/40 px-4 py-1.5 rounded-full border border-green-600/50 shadow-inner">
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                 <svg class="w-4 h-4 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
@@ -137,6 +154,7 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
 
         <!-- MAIN WORKSPACE -->
         <div class="flex-1 flex overflow-hidden relative">
+<<<<<<< HEAD
 
             <!-- Mobile backdrop for question navigator -->
             <div x-show="qnavOpen" x-cloak @click="qnavOpen = false"
@@ -148,6 +166,11 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
             <aside
                 :class="qnavOpen ? 'translate-x-0' : '-translate-x-full'"
                 class="fixed inset-y-0 left-0 top-16 lg:top-0 w-72 bg-slate-800 border-r border-slate-700 flex flex-col shrink-0 z-30 shadow-xl transform transition-transform duration-200 ease-out lg:static lg:translate-x-0 lg:shadow-none">
+=======
+            
+            <!-- LEFT SIDEBAR: Question Navigation -->
+            <aside class="w-72 bg-slate-800 border-r border-slate-700 flex flex-col shrink-0 z-10 shadow-xl">
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                 <div class="p-5 flex-1 overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-600">
                     <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-5">Questions</h2>
                     
@@ -156,7 +179,10 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
                         @foreach($questions as $index => $question)
                             <button 
                                 wire:click="setQuestion({{ $index }})"
+<<<<<<< HEAD
                                 @click="qnavOpen = false"
+=======
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                                 class="h-10 rounded-md transition font-bold shadow-sm 
                                 {{ $currentQuestionIndex === $index ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-800' : '' }}
                                 {{ $markedForReview[$question->id] ? 'bg-orange-500 text-white' : ($answers[$question->id] !== null ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600') }}">
@@ -199,7 +225,11 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
                 @endphp
 
                 @if($currentQuestion)
+<<<<<<< HEAD
                     <div class="max-w-4xl mx-auto w-full flex-1 flex flex-col p-5 sm:p-8 lg:p-12">
+=======
+                    <div class="max-w-4xl mx-auto w-full flex-1 flex flex-col p-8 lg:p-12">
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
                         
                         <!-- Question Header -->
                         <div class="mb-10">
@@ -305,7 +335,10 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
         Alpine.data('quizAttempt', (initialSeconds) => ({
             timeRemaining: initialSeconds,
             timerInterval: null,
+<<<<<<< HEAD
             qnavOpen: false,
+=======
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
 
             init() {
                 if (this.timeRemaining > 0) {

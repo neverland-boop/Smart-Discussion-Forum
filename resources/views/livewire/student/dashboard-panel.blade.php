@@ -63,12 +63,21 @@ new class extends Component {
     }
 }; ?>
 
+<<<<<<< HEAD
 <div class="p-4 sm:p-6 space-y-8 min-h-screen text-slate-50">
     
     <!-- Page Header & Action -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h2 class="text-xl sm:text-2xl font-bold tracking-wide text-white">Dashboard Overview</h2>
         <button wire:click="$dispatch('open-join-modal')" class="w-full sm:w-auto justify-center bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md font-semibold flex items-center transition-colors">
+=======
+<div class="p-6 space-y-8 min-h-screen text-slate-50">
+    
+    <!-- Page Header & Action -->
+    <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-bold tracking-wide text-white">Dashboard Overview</h2>
+        <button wire:click="$dispatch('open-join-modal')" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md font-semibold flex items-center transition-colors">
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Join a Group
         </button>
@@ -118,7 +127,11 @@ new class extends Component {
         
         <!-- My Groups -->
 <!-- MY GROUPS CONTAINER -->
+<<<<<<< HEAD
         <div class="lg:col-span-2">
+=======
+        <div class="col-span-2">
+>>>>>>> 655dacc40daca71479b014ca04523b096e7faf09
             <h2 class="text-lg font-bold text-white mb-4">MY GROUPS</h2>
             
             <!-- This container now has a fixed height and hides the scrollbar -->
