@@ -6,18 +6,7 @@ use Livewire\Volt\Volt;
 
 Route::view('/', 'welcome');
 
-Volt::route('register/lecturer', 'pages.auth.register-lecturer')
-    ->middleware(['auth', 'role:admin']) 
-    ->name('register.lecturer');
-
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-Route::view('profile', 'profile')
-    ->middleware(['auth'])
-    ->name('profile');
-
+// --- Public/Unprotected Routes ---
 Route::get('/account-blacklisted', function () {
     return view('account-blacklisted'); 
 })->name('account.blacklisted');
@@ -29,25 +18,31 @@ Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');
 
-Volt::route('forums', 'student.chat-interface')
-    // Add 'role:student' here to block admins and lecturers
-    ->middleware(['auth', 'verified', 'role:student']) 
-    ->name('forums');
+// --- Protected Dashboard & Profile ---
+Route::middleware(['auth', 'verified', 'check.blacklist'])->group(function () {
+    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::view('profile', 'profile')->name('profile');
+});
+
+// --- Administrator Routes ---
+Volt::route('/members', 'admin.members')
+    ->middleware(['auth', 'role:admin']) 
+    ->name('admin.members');
+
+// --- Student Routes (Protected by Blacklist) ---
+Route::middleware(['auth', 'verified', 'role:student', 'check.blacklist'])->group(function () {
     
-Volt::route('quizzes', 'student.quiz-dashboard')
-    ->middleware(['auth', 'verified', 'role:student'])
-    ->name('quizzes');
+    Volt::route('forums', 'student.chat-interface')->name('forums');
+    
+    Volt::route('quizzes', 'student.quiz-dashboard')->name('quizzes');
+    Volt::route('quizzes/{id}/attempt', 'student.quiz-attempt')->name('quiz.attempt');
 
-Volt::route('quizzes/{id}/attempt', 'student.quiz-attempt')
-    ->middleware(['auth', 'verified', 'role:student'])
-    ->name('quiz.attempt');
+});
 
+// --- Lecturer Routes ---
 Route::middleware(['auth', 'role:lecturer'])->group(function () {
     Volt::route('/lecturer/students', 'lecturer.students')->name('lecturer.students');
     Volt::route('/lecturer/grades', 'lecturer.grades')->name('lecturer.grades');
 });
 
-Volt::route('register/lecturer', 'pages.auth.register-lecturer')
-    ->middleware(['auth', 'role:admin']) 
-    ->name('register.lecturer');
 require __DIR__.'/auth.php';

@@ -48,14 +48,16 @@ Route::middleware(['auth:sanctum', 'check.blacklist'])->group(function () {
     Route::post('/topics/warn', [TopicController::class, 'warn']);
 
     Route::get('/quizzes', [QuizController::class, 'index']); 
-    
     Route::get('/quizzes/{quiz}', [QuizController::class, 'show']); 
-
     Route::post('/attempts/{attempt}/submit', [QuizAttemptController::class, 'submit']);
 
-    Route::apiResource('topics.posts', PostController::class)->only(['index']);
+    // --- POSTS & MODERATION ---
+    // This now handles both GET /topics/{topic}/posts AND POST /topics/{topic}/posts
+    Route::apiResource('topics.posts', PostController::class)->only(['index', 'store']);
     
-    // Custom action for sending messages (triggers compliance)
-    Route::post('/topics/message', [TopicController::class, 'sendMessage']); 
+    // NEW: Community Flagging Endpoint (POST /posts/{post}/flag)
+    Route::post('/posts/{post}/flag', [PostController::class, 'flag']);
     
+    // Note: I replaced the old '/topics/message' custom route because 
+    // the apiResource 'topics.posts' 'store' method handles this cleanly now.
 });

@@ -44,15 +44,14 @@
                         @if(auth()->user()->hasAnyRole(['lecturer']))
                             <a href="{{ route('lecturer.students') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Students</a>
                             <a href="{{ route('lecturer.grades') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Grades</a>
-                        @endif
-                        @if(auth()->user()->hasAnyRole(['admin', 'lecturer']))
                             <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Quiz Control</a>
-                            <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Reports</a>
-                        @endif
+                             @endif
                         @if(auth()->user()->hasAnyRole(['admin']))
-                            <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Moderation</a>
+                            <a href="{{ route('admin.members') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Members</a>
                         @endif
-
+                        @if(auth()->user()->hasAnyRole(['lecturer', 'admin']))
+                            <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Reports</a>
+                        @endif  
                     </nav>
                 </div>
 

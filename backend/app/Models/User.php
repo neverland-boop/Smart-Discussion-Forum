@@ -69,7 +69,6 @@ class User extends Authenticatable implements JWTSubject // MustVerifyEmail
         return $this->getKey();
     }
 
-
     public function getJWTCustomClaims()
     {
         return [
@@ -78,23 +77,100 @@ class User extends Authenticatable implements JWTSubject // MustVerifyEmail
         ];
     }
 
-    public function groups() {
-    return $this->belongsToMany(Group::class, 'group_members');
-}
+    // --- Existing Relationships ---
 
-public function marks()
+    public function groups() 
+    {
+        return $this->belongsToMany(Group::class, 'group_members');
+    }
+
+    public function marks()
     {
         return $this->hasMany(Mark::class);
     }
 
     public function blacklist()
+    {
+        return $this->hasOne(Blacklist::class);
+    }
+
+    public function accessibleTopics()
+    {
+        // A user can access many topics
+        return $this->belongsToMany(Topic::class, 'thread_participants', 'user_id', 'topic_id');
+    }
+
+    // --- New Moderation & Inactivity Relationships & Methods ---
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    /**
+     * Determine the exact last time the user communicated.
+     * Used by the Inactivity Cron Job.
+     */
+    public function lastCommunicationDate()
+    {
+        $lastPost = $this->posts()->latest()->first();
+        
+        // If they have never posted, measure from the day they created their account
+        return $lastPost ? $lastPost->created_at : $this->created_at;
+    }
+
+    /**
+     * Check if the user is currently serving an active suspension.
+     * Used by API Middleware and Login checks.
+     */
+    public function isSuspended()
+    {
+        return $this->blacklist()
+            ->where('status', 'SUSPENDED')
+            ->where('expiry_date', '>', now())
+            ->exists();
+    }
+
+    /**
+     * Issue a warning to the user and auto-suspend if they hit the limit.
+     */
+// --- Moderation Actions inside admin.members ---
+
+// Inside app/Models/User.php
+
+public function issueWarning()
 {
-    return $this->hasOne(Blacklist::class);
+    $this->increment('warning_count');
+    $isSuspended = $this->warning_count >= 3;
+
+    $this->blacklist()->updateOrCreate(
+        ['user_id' => $this->id],
+        [
+            'warning_count' => $this->warning_count,
+            'status' => $isSuspended ? 'SUSPENDED' : 'ACTIVE',
+            'expiry_date' => $isSuspended ? now()->addDays(7) : null
+        ]
+    );
 }
 
-public function accessibleTopics()
+public function pardon()
 {
-    // A user can access many topics
-    return $this->belongsToMany(Topic::class, 'thread_participants', 'user_id', 'topic_id');
+    $this->update(['warning_count' => 0]);
+    if ($this->blacklist) {
+        $this->blacklist->update([
+            'warning_count' => 0,
+            'status' => 'ACTIVE',
+            'expiry_date' => null
+        ]);
+    }
+}
+
+public function manualSuspend($userId) {
+    $user = User::find($userId);
+    // Directly suspend for 7 days manually
+    $user->blacklist()->updateOrCreate(
+        ['user_id' => $user->id],
+        ['status' => 'SUSPENDED', 'expiry_date' => now()->addDays(7)]
+    );
 }
 }

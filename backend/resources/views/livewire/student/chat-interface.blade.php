@@ -9,6 +9,7 @@ use App\Services\GroupService;
 use App\Services\ModerationService;
 use App\Models\Group;
 use App\Models\Topic;
+use App\Models\Report;
 use Illuminate\Support\Facades\Auth;
 
 new class extends Component {
@@ -30,6 +31,11 @@ new class extends Component {
     public bool $showLeftSidebar = true;
     public bool $showCreateModal = false;
     public bool $showJoinModal = false;
+
+    // --- Moderation State ---
+    public $showFlagModal = false;
+    public $flagReason = '';
+    public $flaggingPostId = null;
 
     public function openAddTopicModal($groupId)
     {
@@ -65,7 +71,7 @@ new class extends Component {
         $topicService->approveParticipant($topicId, $userId, auth()->user());
     }
 
-    public function sendMessage(PostService $postService, ModerationService $moderationService)
+    public function sendMessage(PostService $postService)
     {
         if (!$this->activeTopic) return;
         
@@ -85,12 +91,35 @@ new class extends Component {
             'attachment_path' => $attachmentPath
         ], $this->activeTopic);
 
-        // Clear Blacklist Warnings if compliant
-        $moderationService->clearWarningsIfCompliant(auth()->user());
+        // --- INACTIVITY PARDON ---
+        if (auth()->user()->warning_count > 0) {
+            auth()->user()->pardon();
+        }
 
         $this->newMessage = '';
         $this->attachment = null;
         $this->dispatch('message-sent'); 
+    }
+
+    // --- Flagging Methods ---
+    public function openFlagModal($postId)
+    {
+        $this->flaggingPostId = $postId;
+        $this->showFlagModal = true;
+    }
+
+    public function submitFlag()
+    {
+        $this->validate(['flagReason' => 'required|string|max:255']);
+
+        Report::create([
+            'post_id' => $this->flaggingPostId,
+            'reported_by' => auth()->id(),
+            'reason' => $this->flagReason,
+        ]);
+
+        $this->reset(['showFlagModal', 'flagReason', 'flaggingPostId']);
+        $this->dispatch('post-flagged'); 
     }
 
     public function warnParticipant(ModerationService $moderationService, $topicId, $userId)
@@ -304,6 +333,23 @@ new class extends Component {
                      x-on:message-sent.window="setTimeout(scroll, 100)" 
                      class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700 hover:[&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full">
                     
+                    <!-- WARNING BANNER -->
+                    @if(auth()->user()->warning_count > 0)
+                        <div class="bg-orange-900/40 border-l-4 border-orange-500 p-4 mb-6 rounded-r-lg shadow-sm">
+                            <div class="flex items-center">
+                                <svg class="h-6 w-6 text-orange-400 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div>
+                                    <h3 class="text-orange-400 font-bold text-sm">Account Warning ({{ auth()->user()->warning_count }}/3 Strikes)</h3>
+                                    <p class="text-orange-200 text-sm mt-1">
+                                        You have received warnings for platform inactivity or inappropriate behavior. Reach 3 strikes, and your account will be suspended. <strong>Posting a constructive message will clear your warnings.</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     @forelse($messages as $message)
                         <div wire:key="msg-{{ $message['id'] }}" 
                              x-data="{
@@ -348,14 +394,28 @@ new class extends Component {
                                         {{ $message['text'] }}
                                     </div>
 
-                                    <button type="button" 
-                                            @click="triggerShare()"
-                                            title="Forward Message"
-                                            class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-full hover:bg-slate-700 text-slate-400 hover:text-blue-400 focus:outline-none focus:opacity-100">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316M15 12a3 3 0 100-6 3 3 0 000 6zm0 0a3 3 0 100 6 3 3 0 000-6z"></path>
-                                        </svg>
-                                    </button>
+                                    <div class="flex flex-col gap-1">
+                                        <button type="button" 
+                                                @click="triggerShare()"
+                                                title="Forward Message"
+                                                class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 rounded-full hover:bg-slate-700 text-slate-400 hover:text-blue-400 focus:outline-none focus:opacity-100">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316M15 12a3 3 0 100-6 3 3 0 000 6zm0 0a3 3 0 100 6 3 3 0 000-6z"></path>
+                                            </svg>
+                                        </button>
+                                        
+                                        <!-- NEW: FLAG BUTTON -->
+                                        @if(!$message['is_mine'])
+                                            <button type="button" 
+                                                    wire:click="openFlagModal({{ $message['id'] }})"
+                                                    title="Flag Message"
+                                                    class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 rounded-full hover:bg-slate-700 text-slate-400 hover:text-red-400 focus:outline-none focus:opacity-100">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path>
+                                                </svg>
+                                            </button>
+                                        @endif
+                                    </div>
                                 </div>
                                 
                                 <span class="text-[10px] text-slate-500 mt-1 block {{ $message['is_mine'] ? 'mr-1' : 'ml-1' }}">{{ $message['time'] }}</span>
@@ -573,6 +633,43 @@ new class extends Component {
         </div>
     </div>
     @endif
+
+    <!-- FLAG REPORT MODAL -->
+    <div x-data="{ show: $wire.entangle('showFlagModal') }" x-cloak>
+        <div x-show="show" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true" style="display: none;">
+            <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                
+                <div x-show="show" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/80 backdrop-blur-sm" aria-hidden="true" @click="show = false"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-slate-800 shadow-xl rounded-2xl border border-slate-700 relative z-10">
+                    
+                    <h2 class="text-xl font-bold mb-2 text-white flex items-center" id="modal-title">
+                        <svg class="w-6 h-6 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        Report Message
+                    </h2>
+                    <p class="text-sm text-slate-400 mb-5">Why are you flagging this message? The administrator will review this report and take appropriate action.</p>
+                    
+                    <form wire:submit.prevent="submitFlag">
+                        <div class="mb-5">
+                            <label class="block text-sm font-medium mb-2 text-slate-300">Reason for reporting</label>
+                            <textarea wire:model="flagReason" rows="3" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:ring-red-500 focus:border-red-500 transition-colors" placeholder="E.g., Off-topic, spam, inappropriate language..."></textarea>
+                            @error('flagReason') <span class="text-red-400 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="flex justify-end space-x-3 mt-2">
+                            <button type="button" @click="show = false" class="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-md">
+                                Submit Report
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <livewire:student.create-group-modal />
     <livewire:student.join-group-modal />
