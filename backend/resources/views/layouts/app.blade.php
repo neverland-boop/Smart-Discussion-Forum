@@ -16,6 +16,7 @@
     </head>
 <body class="font-sans antialiased text-slate-50" x-data="{ sidebarOpen: false }">
     <div class="flex h-screen bg-slate-800 overflow-hidden">
+        
         <!-- Sidebar -->
         @if(!request()->routeIs('quiz.attempt'))
             <!-- Mobile backdrop -->
@@ -24,53 +25,74 @@
                  x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
                  class="fixed inset-0 bg-black/60 z-40 lg:hidden"></div>
 
+            <!-- Green Sidebar -->
             <aside
                 :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-                class="fixed inset-y-0 left-0 z-50 w-64 h-full bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 shadow-2xl transform transition-transform duration-200 ease-out lg:static lg:translate-x-0 lg:shadow-none">
+                class="fixed inset-y-0 left-0 z-50 w-64 h-full bg-green-700 border-r border-green-800 flex flex-col justify-between shrink-0 shadow-2xl transform transition-transform duration-200 ease-out lg:static lg:translate-x-0 lg:shadow-none">
                 <div>
-                    <div class="h-16 flex items-center justify-between px-6 border-b border-slate-800">
-                        <span class="text-white font-bold text-lg tracking-wider">SMART DISCUSSION</span>
+                    <div class="h-16 flex items-center justify-between px-6 border-b border-green-800">
+                        <a href="{{ route('dashboard') }}" class="flex items-center gap-2 group outline-none">
+                        <!-- Chat Bubble Icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8 text-green-300 group-hover:text-white transition-colors">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                        </svg>
+                        <span class="text-white font-bold text-lg tracking-wider group-hover:text-green-100 transition-colors">SMART DISCUSSION</span>
+                        </a>
                         <!-- Mobile close button -->
-                        <button @click="sidebarOpen = false" type="button" aria-label="Close menu" class="lg:hidden text-slate-400 hover:text-white p-1 -mr-2 rounded-md hover:bg-slate-800 transition">
+                        <button @click="sidebarOpen = false" type="button" aria-label="Close menu" class="lg:hidden text-green-200 hover:text-white p-1 -mr-2 rounded-md hover:bg-green-600 transition">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                     </div>
                     <nav class="p-4 space-y-2 mt-4">
-                        <a href="{{ route('dashboard') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('dashboard') ? 'bg-green-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-green-400' }}">Dashboard</a>
+                        
+                        <!-- Dashboard -->
+                        <a href="{{ route('dashboard') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('dashboard') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Dashboard</a>
+                        
+                        <!-- Student Links -->
                         @if(auth()->user()->hasAnyRole(['student']))
-                        <a href="{{ route('forums') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('forums') ? 'bg-green-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-green-400' }}">Discussions</a>
-                        <a href="{{ route('quizzes') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('quizzes') ? 'bg-green-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-green-400' }}">Quizzes</a>
+                            <a href="{{ route('forums') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('forums') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Discussions</a>
+                            <a href="{{ route('quizzes') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('quizzes') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Quizzes</a>
                         @endif
+                        
+                        <!-- Lecturer Links -->
                         @if(auth()->user()->hasAnyRole(['lecturer']))
-                            <a href="{{ route('lecturer.students') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Students</a>
-                            <a href="{{ route('lecturer.grades') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Grades</a>
-                            <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Quiz Control</a>
-                             @endif
-                        @if(auth()->user()->hasAnyRole(['admin']))
-                            <a href="{{ route('admin.members') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Members</a>
+                            <a href="{{ route('lecturer.students') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('lecturer.students') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Students</a>
+                            <a href="{{ route('lecturer.grades') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('lecturer.grades') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Grades</a>
+                            <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('lecturer.quiz-control') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Quiz Control</a>
                         @endif
+                        
+                        <!-- Admin Links -->
+                        @if(auth()->user()->hasAnyRole(['admin']))
+                            <a href="{{ route('admin.members') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('admin.members') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Members</a>
+                            <a href="{{ route('admin.settings') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('admin.settings') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Settings</a>
+                        @endif
+                        
+                        <!-- Shared Links -->
                         @if(auth()->user()->hasAnyRole(['lecturer', 'admin']))
-                            <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors text-slate-400 hover:bg-slate-800 hover:text-green-400">Reports</a>
+                            <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('reports.*') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Reports</a>
                         @endif  
+
                     </nav>
                 </div>
 
                 <!-- Profile Dropdown -->
-                <div class="p-6 border-t border-slate-800">
+                <div class="p-6 border-t border-green-800">
                     <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="flex items-center gap-3 w-full">
-                            <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center font-bold text-white shrink-0">{{ substr(Auth::user()->name, 0, 1) }}</div>
+                        <button @click="open = !open" class="flex items-center gap-3 w-full hover:opacity-80 transition">
+                            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center font-bold text-green-700 shrink-0 shadow">{{ substr(Auth::user()->name, 0, 1) }}</div>
                             <div class="flex flex-col text-left min-w-0">
                                 <span class="text-sm font-semibold text-white truncate">{{ Auth::user()->name }}</span>
-                                <span class="text-xs text-slate-400 truncate">Settings & Profile</span>
+                                <span class="text-xs text-green-200 truncate">Settings & Profile</span>
                             </div>
                         </button>
-                        <div x-show="open" @click.away="open = false" class="absolute bottom-16 left-0 w-full bg-slate-800 border border-slate-700 rounded-lg p-2 z-50">
-                            <a href="{{ route('profile') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700">Profile</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700">Settings</a>
+                        <div x-show="open" x-cloak @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute bottom-16 left-0 w-full bg-green-900 border border-green-800 rounded-lg p-2 z-50 shadow-xl">
+                            <a href="{{ route('profile') }}" class="block px-4 py-2 text-sm text-green-100 hover:bg-green-700 hover:text-white rounded transition">Profile</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-slate-700">Logout</button>
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-red-300 hover:bg-red-600 hover:text-white rounded transition">Logout</button>
                             </form>
                         </div>
                     </div>
@@ -80,20 +102,52 @@
 
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <!-- Mobile top bar with hamburger -->
+            <!-- Mobile top bar with hamburger (Updated to match green theme) -->
             @if(!request()->routeIs('quiz.attempt'))
-                <header class="h-16 flex items-center gap-3 px-4 border-b border-slate-800 bg-slate-900 shrink-0 lg:hidden">
-                    <button @click="sidebarOpen = true" type="button" aria-label="Open menu" class="p-2 -ml-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                <header class="h-16 flex items-center gap-3 px-4 border-b border-green-800 bg-green-700 shrink-0 lg:hidden">
+                    <button @click="sidebarOpen = true" type="button" aria-label="Open menu" class="p-2 -ml-2 rounded-md text-green-100 hover:text-white hover:bg-green-600 transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
-                    <span class="text-white font-bold tracking-wider text-sm">SMART DISCUSSION</span>
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2 outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6 text-green-200">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                        </svg>
+                        <span class="text-white font-bold tracking-wider text-sm">SMART DISCUSSION</span>
+                    </a>
                 </header>
             @endif
             <main class="flex-1 overflow-y-auto bg-slate-800">
                 {{ $slot }}
             </main>
+        </div>
+    </div>
+    
+    <!-- Global Confirmation Modal -->
+    <div x-data="{ 
+            show: false, 
+            title: '', 
+            message: '', 
+            callback: null 
+        }" 
+        @open-confirm.window="
+            title = $event.detail.title;
+            message = $event.detail.message;
+            callback = $event.detail.callback;
+            show = true;
+        "
+        x-show="show" x-cloak
+        class="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm">
+
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
+            <h2 class="text-xl font-bold text-white mb-2" x-text="title"></h2>
+            <p class="text-slate-400 mb-6" x-text="message"></p>
+            
+            <div class="flex gap-3">
+                <button @click="show = false" class="flex-1 py-2 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-700 transition">Cancel</button>
+                <button @click="callback(); show = false;" class="flex-1 py-2 rounded-lg bg-green-600 text-white font-bold hover:bg-green-500 transition">Confirm</button>
+            </div>
         </div>
     </div>
     @stack('scripts')

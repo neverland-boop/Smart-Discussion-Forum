@@ -25,9 +25,13 @@ Route::middleware(['auth', 'verified', 'check.blacklist'])->group(function () {
 });
 
 // --- Administrator Routes ---
-Volt::route('/members', 'admin.members')
-    ->middleware(['auth', 'role:admin']) 
-    ->name('admin.members');
+// Grouped to cleanly enforce interface access privilege control[cite: 2]
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Volt::route('/members', 'admin.members')->name('admin.members');
+    
+    // The new Settings Route
+    Volt::route('/settings', 'admin.settings')->name('admin.settings');
+});
 
 // --- Student Routes (Protected by Blacklist) ---
 Route::middleware(['auth', 'verified', 'role:student', 'check.blacklist'])->group(function () {

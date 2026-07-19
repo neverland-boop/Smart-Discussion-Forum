@@ -1,12 +1,15 @@
 <?php
 use Livewire\Volt\Component;
 use App\Models\Group;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 new class extends Component {
     public $groups = [];
     public $selectedGroupId = null;
     
-    // UI State for Group Statistics[cite: 2]
+    // UI State for Group Statistics
     public $totalPosts = 0;
     public $activeMembers = 0;
     public $totalMembers = 0;
@@ -21,13 +24,10 @@ new class extends Component {
         if ($this->groups->isNotEmpty()) {
             $this->selectedGroupId = $this->groups->first()->id;
             $this->loadGroupStatistics();
-        } else {
-            // Fallback dummy data for UI testing if the database is empty
-            $this->setupDummyData();
         }
     }
 
-    // Livewire Lifecycle Hook: Runs automatically when $selectedGroupId changes
+    // Runs automatically when the user toggles the dropdown
     public function updatedSelectedGroupId()
     {
         $this->loadGroupStatistics();
@@ -35,200 +35,265 @@ new class extends Component {
 
     public function loadGroupStatistics()
     {
-        $group = Group::with(['members', 'topics.posts'])->find($this->selectedGroupId);
+        // Using with() to eager load members to prevent N+1 queries
+        $group = Group::with(['members'])->find($this->selectedGroupId);
         
         if ($group) {
-            $this->totalPosts = $group->topics->sum('postCount');
-            $this->totalMembers = $group->members->count();
-            $this->activeMembers = $group->members->where('status', 'ACTIVE')->count();
-            
-            // These would be replaced by your actual IAnalyticsEngine computations[cite: 2]
-            $this->quizParticipationRate = 85; 
-            $this->topContributor = 'Patience R.'; 
-            $this->students = $group->members; 
-        }
+            // 1. Total Posts
+            $this->totalPosts = DB::table('posts')
+                ->join('topics', 'posts.topic_id', '=', 'topics.id')
+                ->where('topics.group_id', $group->id)
+                ->count();
 
-        // Dispatch new chart data to the frontend (Web vs Desktop interfaces[cite: 1])
-        $this->dispatch('update-chart-data', data: [
-            'web' => [120, 210, 150, 310, 220, 400, rand(200, 450)],
-            'desktop' => [80, 120, 100, 180, 150, 250, rand(100, 300)] 
-        ]);
+            // 2. Member Activeness (Assuming pivot data contains status)
+            $this->totalMembers = $group->members->count();
+            // Fallback to checking the pivot table or user model for status
+            $this->activeMembers = $group->members->filter(function($member) {
+                return ($member->pivot->status ?? 'ACTIVE') === 'ACTIVE';
+            })->count();
+            
+            // 3. Top Contributor
+            $topMember = $group->members()
+                ->withCount(['posts' => function ($query) use ($group) {
+                    $query->whereHas('topic', function ($q) use ($group) {
+                        $q->where('group_id', $group->id);
+                    });
+                }])
+                ->orderByDesc('posts_count')
+                ->first();
+                
+            $this->topContributor = ($topMember && $topMember->posts_count > 0) 
+                ? $topMember->name 
+                : 'N/A';
+
+            // 4. Quiz Participation Rate
+            $totalQuizzes = DB::table('quizzes')->where('group_id', $group->id)->count();
+            if ($totalQuizzes > 0 && $this->totalMembers > 0) {
+                $participatedMembers = DB::table('quiz_user')
+                    ->join('quizzes', 'quiz_user.quiz_id', '=', 'quizzes.id')
+                    ->where('quizzes.group_id', $group->id)
+                    ->distinct('quiz_user.user_id')
+                    ->count('quiz_user.user_id');
+                    
+                $this->quizParticipationRate = round(($participatedMembers / $this->totalMembers) * 100);
+            } else {
+                $this->quizParticipationRate = 0;
+            }
+
+            // 5. Mapping Students for the Table
+            $this->students = $group->members->map(function($student) {
+                $warnings = $student->pivot->warnings_count ?? 0;
+                // Determine status dynamically if not explicitly set
+                $status = $student->pivot->status ?? 'ACTIVE';
+                if ($warnings == 1 && $status == 'ACTIVE') $status = 'WARNING SENT';
+                if ($warnings >= 2) $status = 'BLACKLISTED';
+
+                return (object) [
+                    'id' => $student->id,
+                    'name' => $student->name,
+                    'last_seen' => $student->last_seen_at ? Carbon::parse($student->last_seen_at)->diffForHumans() : 'Never',
+                    'warnings' => $warnings,
+                    'status' => $status,
+                ];
+            });
+
+            // 6. Dispatch Chart Data (Group Activity: Posts vs Quizzes)
+            $chartData = $this->getWeeklyActivityData($group->id);
+            $this->dispatch('update-chart-data', data: $chartData);
+        } else {
+            $this->resetStats();
+        }
     }
 
-    private function setupDummyData()
+
+    /**
+     * Action: Lift ban and reset warnings for a student.
+     */
+    public function liftBan($userId)
     {
-        // Fallback for visual rendering
-        $this->groups = [
-            (object)['id' => 1, 'groupName' => 'Software Engineering Group'],
-            (object)['id' => 2, 'groupName' => 'Database Admin Group']
+        DB::table('group_user')
+            ->where('group_id', $this->selectedGroupId)
+            ->where('user_id', $userId)
+            ->update([
+                'warnings_count' => 0,
+                'status' => 'ACTIVE'
+            ]);
+
+        $this->loadGroupStatistics(); // Refresh UI
+    }
+
+    /**
+     * Aggregates group activity (Posts vs Quiz Attempts) over the last 7 days.
+     * Compatible for JSON serialization (Java UI team can consume via standard API).
+     */
+    private function getWeeklyActivityData($groupId)
+    {
+        $labels = [];
+        $postsData = [];
+        $quizzesData = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $labels[] = $date->format('M d'); // e.g., "Jul 19"
+
+            try {
+                // Count posts made in this group on this date
+                $postsData[] = DB::table('posts')
+                    ->join('topics', 'posts.topic_id', '=', 'topics.id')
+                    ->where('topics.group_id', $groupId)
+                    ->whereDate('posts.created_at', $date->toDateString())
+                    ->count();
+
+                // Count quiz attempts in this group on this date
+                $quizzesData[] = DB::table('quiz_user')
+                    ->join('quizzes', 'quiz_user.quiz_id', '=', 'quizzes.id')
+                    ->where('quizzes.group_id', $groupId)
+                    ->whereDate('quiz_user.created_at', $date->toDateString())
+                    ->count();
+            } catch (\Exception $e) {
+                // Fallback to 0 if tables are missing or queried prematurely
+                $postsData[] = 0;
+                $quizzesData[] = 0;
+            }
+        }
+
+        return [
+            'labels' => $labels,
+            'posts' => $postsData,
+            'quizzes' => $quizzesData
         ];
-        $this->selectedGroupId = 1;
-        $this->totalPosts = 1245;
-        $this->activeMembers = 42;
-        $this->totalMembers = 45;
-        $this->quizParticipationRate = 85;
-        $this->topContributor = 'Patience R.';
-        
-        $this->students = [
-            (object)['name' => 'Elizeous Anthony', 'last_seen' => '2 hours ago', 'warnings' => 0, 'status' => 'ACTIVE'],
-            (object)['name' => 'John Doe', 'last_seen' => '14 days ago', 'warnings' => 1, 'status' => 'WARNING SENT'],
-            (object)['name' => 'Mark Taylor', 'last_seen' => '45 days ago', 'warnings' => 2, 'status' => 'BLACKLISTED'],
-        ];
+    }
+
+    private function resetStats()
+    {
+        $this->totalPosts = 0;
+        $this->activeMembers = 0;
+        $this->totalMembers = 0;
+        $this->quizParticipationRate = 0;
+        $this->topContributor = 'N/A';
+        $this->students = [];
+        $this->dispatch('update-chart-data', data: ['labels' => [], 'posts' => [], 'quizzes' => []]);
     }
 }; ?>
 
-<div class="p-4 sm:p-6 space-y-8 bg-slate-900 min-h-screen text-slate-50">
+<div class="p-4 sm:p-6 lg:p-8 space-y-8 bg-gray-50 min-h-screen text-gray-900 font-sans">
     
     <!-- Page Header & Group Selector -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <h2 class="text-xl sm:text-2xl font-bold tracking-wide">Dashboard & Analytics</h2>
-        <select wire:model.live="selectedGroupId" class="w-full sm:w-auto bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-4 py-2 focus:ring-green-500 focus:border-green-500">
-            @foreach($groups as $group)
-                <option value="{{ $group->id }}">{{ $group->groupName }}</option>
-            @endforeach
-        </select>
+        <div>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-gray-900">Dashboard & Analytics</h2>
+            <p class="text-sm text-gray-500 mt-1">Overview of group engagement and member statistics</p>
+        </div>
+        
+        @if($groups->isNotEmpty())
+            <!-- Live wire binding triggers updatedSelectedGroupId() instantly -->
+            <select wire:model.live="selectedGroupId" class="w-full sm:w-64 bg-white border border-gray-300 text-gray-700 rounded-xl px-4 py-2.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow cursor-pointer">
+                @foreach($groups as $group)
+                    <option value="{{ $group->id }}">{{ $group->name ?? $group->groupName }}</option>
+                @endforeach
+            </select>
+        @else
+            <span class="text-gray-500 italic text-sm">No groups available</span>
+        @endif
     </div>
 
     <!-- 1. GROUP STATISTICS CARDS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm">
-            <p class="text-sm font-medium text-slate-400 uppercase tracking-wider">Total Posts</p>
-            <p class="text-3xl font-bold text-white mt-2">{{ number_format($totalPosts) }}</p>
-            <p class="text-xs text-green-400 mt-1">Live tracking</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Posts</p>
+            <p class="text-3xl font-bold text-gray-900 mt-3">{{ number_format($totalPosts) }}</p>
+            <p class="text-xs font-medium text-green-600 mt-2 bg-green-50 inline-block px-2 py-1 rounded-md">Group lifetime total</p>
         </div>
-        <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm">
-            <p class="text-sm font-medium text-slate-400 uppercase tracking-wider">Active Members</p>
-            <p class="text-3xl font-bold text-white mt-2">{{ $activeMembers }} / {{ $totalMembers }}</p>
-            <p class="text-xs text-slate-500 mt-1">{{ $totalMembers - $activeMembers }} members inactive</p>
+        
+        <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active Members</p>
+            <div class="flex items-baseline gap-2 mt-3">
+                <p class="text-3xl font-bold text-gray-900">{{ $activeMembers }}</p>
+                <p class="text-lg font-medium text-gray-400">/ {{ $totalMembers }}</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">{{ $totalMembers - $activeMembers }} members flagged/inactive</p>
         </div>
-        <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm">
-            <p class="text-sm font-medium text-slate-400 uppercase tracking-wider">Quiz Participation</p>
-            <p class="text-3xl font-bold text-white mt-2">{{ $quizParticipationRate }}%</p>
-            <p class="text-xs text-slate-500 mt-1">Average completion rate</p>
+        
+        <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Quiz Participation</p>
+            <p class="text-3xl font-bold text-gray-900 mt-3">{{ $quizParticipationRate }}%</p>
+            <p class="text-xs text-gray-500 mt-2">Average completion rate</p>
         </div>
-        <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm">
-            <p class="text-sm font-medium text-slate-400 uppercase tracking-wider">Top Contributor</p>
-            <p class="text-2xl font-bold text-green-400 mt-2 truncate">{{ $topContributor }}</p>
-            <p class="text-xs text-slate-500 mt-1">Highest engagement</p>
+        
+        <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Top Contributor</p>
+            <p class="text-2xl font-bold text-green-600 mt-3 truncate" title="{{ $topContributor }}">{{ $topContributor }}</p>
+            <p class="text-xs text-gray-500 mt-2">Highest post volume</p>
         </div>
     </div>
 
     <!-- 2. FULL-WIDTH ACTIVITY GRAPH -->
-    <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl shadow-sm w-full flex flex-col">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-slate-300 font-semibold uppercase tracking-wider text-sm">7-Day Access Activity (Web vs Desktop)</h3>
-            <button class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1.5 rounded transition border border-slate-600">Export to PDF</button>
+    <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm w-full flex flex-col">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h3 class="text-gray-900 font-bold tracking-tight text-lg">7-Day Group Activity</h3>
+            <button class="text-sm font-medium bg-white hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-xl transition-colors border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200">
+                Export to PDF
+            </button>
         </div>
         <div class="relative w-full h-[350px]">
             <canvas id="activityChart" wire:ignore></canvas>
         </div>
     </div>
-
-    <!-- 3. STUDENT ACTIVENESS & WARNING TABLE -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl shadow-sm overflow-hidden">
-        <div class="p-6 border-b border-slate-700 flex justify-between items-center">
-            <h3 class="text-slate-300 font-semibold uppercase tracking-wider text-sm">Student Activeness Monitor</h3>
-        </div>
-        
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="border-b border-slate-700 bg-slate-800/50 text-xs uppercase tracking-wider text-slate-400">
-                        <th class="p-4 font-medium">Member Name</th>
-                        <th class="p-4 font-medium">Last Seen</th>
-                        <th class="p-4 font-medium">Warnings Issued</th>
-                        <th class="p-4 font-medium">Status</th>
-                        <th class="p-4 font-medium text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="text-sm divide-y divide-slate-700/50">
-                    @forelse($students as $student)
-                        <tr class="hover:bg-slate-700/20 transition-colors">
-                            <td class="p-4 font-medium text-slate-200">{{ $student->name }}</td>
-                            <td class="p-4 text-slate-400">{{ $student->last_seen ?? 'Unknown' }}</td>
-                            
-                            <!-- Dynamic Warning Colors -->
-                            <td class="p-4 font-medium 
-                                {{ $student->warnings == 0 ? 'text-slate-400' : '' }}
-                                {{ $student->warnings == 1 ? 'text-orange-400' : '' }}
-                                {{ $student->warnings >= 2 ? 'text-red-400' : '' }}">
-                                {{ $student->warnings }} / 2
-                            </td>
-                            
-                            <!-- Dynamic Status Badges -->
-                            <td class="p-4">
-                                @if($student->status === 'ACTIVE')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400 border border-green-800/50">
-                                        Active
-                                    </span>
-                                @elseif($student->status === 'WARNING SENT')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-900/30 text-orange-400 border border-orange-800/50">
-                                        Warning Sent
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900/30 text-red-400 border border-red-800/50">
-                                        Blacklisted
-                                    </span>
-                                @endif
-                            </td>
-                            
-                            <!-- Dynamic Actions -->
-                            <td class="p-4 text-right">
-                                @if($student->status === 'ACTIVE')
-                                    <button class="text-slate-400 hover:text-white transition">•••</button>
-                                @elseif($student->status === 'WARNING SENT')
-                                    <button class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded transition">Issue Warning</button>
-                                @else
-                                    <button class="text-xs bg-slate-700 hover:bg-slate-600 text-green-400 px-3 py-1.5 rounded transition">Lift Ban</button>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="p-4 text-center text-slate-500 italic">No members found in this group.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+    
 </div>
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            Chart.defaults.color = '#94a3b8'; 
-            Chart.defaults.borderColor = '#334155'; 
+            // Light theme default chart configurations
+            Chart.defaults.color = '#6b7280'; // gray-500
+            Chart.defaults.borderColor = '#f3f4f6'; // gray-100
+            Chart.defaults.font.family = "'Inter', 'sans-serif'";
 
             const activityCtx = document.getElementById('activityChart').getContext('2d');
 
+            // Creating subtle light-theme gradients for the line fills
             const gradientBlue = activityCtx.createLinearGradient(0, 0, 0, 400);
-            gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); 
+            gradientBlue.addColorStop(0, 'rgba(59, 130, 246, 0.2)'); 
             gradientBlue.addColorStop(1, 'rgba(59, 130, 246, 0.0)'); 
 
-            const gradientTeal = activityCtx.createLinearGradient(0, 0, 0, 400);
-            gradientTeal.addColorStop(0, 'rgba(45, 212, 191, 0.5)'); 
-            gradientTeal.addColorStop(1, 'rgba(45, 212, 191, 0.0)'); 
+            const gradientPurple = activityCtx.createLinearGradient(0, 0, 0, 400);
+            gradientPurple.addColorStop(0, 'rgba(168, 85, 247, 0.2)'); 
+            gradientPurple.addColorStop(1, 'rgba(168, 85, 247, 0.0)'); 
 
             let accessChart = new Chart(activityCtx, {
                 type: 'line',
                 data: {
-                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    labels: [], 
                     datasets: [
                         {
-                            label: 'Web Users',
-                            data: [120, 210, 150, 310, 220, 400, 280],
-                            borderColor: '#3b82f6', 
+                            label: 'Posts Created',
+                            data: [],
+                            borderColor: '#3b82f6', // blue-500
                             backgroundColor: gradientBlue,
-                            borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6 
+                            borderWidth: 2, 
+                            fill: true, 
+                            tension: 0.4, 
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#3b82f6',
+                            pointBorderWidth: 2,
+                            pointRadius: 4, 
+                            pointHoverRadius: 6 
                         },
                         {
-                            label: 'Desktop Users',
-                            data: [80, 120, 100, 180, 150, 250, 190],
-                            borderColor: '#2dd4bf', 
-                            backgroundColor: gradientTeal,
-                            borderWidth: 2, fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6
+                            label: 'Quiz Attempts',
+                            data: [],
+                            borderColor: '#a855f7', // purple-500
+                            backgroundColor: gradientPurple,
+                            borderWidth: 2, 
+                            fill: true, 
+                            tension: 0.4, 
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#a855f7',
+                            pointBorderWidth: 2,
+                            pointRadius: 4, 
+                            pointHoverRadius: 6
                         }
                     ]
                 },
@@ -238,27 +303,54 @@ new class extends Component {
                     interaction: { mode: 'index', intersect: false },
                     plugins: { 
                         legend: { 
-                            display: true, position: 'bottom', 
-                            labels: { usePointStyle: true, boxWidth: 8, padding: 20 }
+                            display: true, 
+                            position: 'top', 
+                            align: 'end',
+                            labels: { 
+                                usePointStyle: true, 
+                                boxWidth: 8, 
+                                padding: 20,
+                                color: '#4b5563' // gray-600
+                            }
                         },
                         tooltip: {
-                            backgroundColor: '#1e293b', titleColor: '#f8fafc',
-                            bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1
+                            backgroundColor: '#ffffff',
+                            titleColor: '#111827', // gray-900
+                            bodyColor: '#4b5563', // gray-600
+                            borderColor: '#e5e7eb', // gray-200
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 6,
+                            usePointStyle: true,
+                            titleFont: { size: 13, weight: 'bold' }
                         }
                     },
                     scales: {
-                        x: { grid: { display: false } },
-                        y: { beginAtZero: true, grid: { color: '#334155' }, border: { display: false } }
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { size: 12 } }
+                        },
+                        y: { 
+                            beginAtZero: true, 
+                            suggestedMax: 10, 
+                            grid: { color: '#f3f4f6' }, // gray-100 
+                            border: { display: false },
+                            ticks: { font: { size: 12 }, padding: 10 }
+                        }
                     }
                 }
             });
 
-            // Listen for Livewire updates to dynamically change chart data
+            // Listen for Livewire updates dynamically
             window.addEventListener('update-chart-data', event => {
-                const newData = event.detail[0].data;
-                accessChart.data.datasets[0].data = newData.web;
-                accessChart.data.datasets[1].data = newData.desktop;
-                accessChart.update();
+                const newData = event.detail[0]?.data || event.detail.data || event.detail;
+                
+                if(newData) {
+                    accessChart.data.labels = newData.labels;
+                    accessChart.data.datasets[0].data = newData.posts;
+                    accessChart.data.datasets[1].data = newData.quizzes;
+                    accessChart.update();
+                }
             });
         });
     </script>

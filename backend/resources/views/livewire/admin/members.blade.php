@@ -19,140 +19,266 @@ new class extends Component {
     // --- Moderation Methods ---
     public function confirmFlag($reportId) {
         $report = Report::find($reportId);
-        if ($report && $report->post) {
-            $user = $report->post->user;
-            $user->issueWarning(); 
-            $report->post->delete();
+        
+        if ($report) {
+            if ($report->post && $report->post->user) {
+                // Funnel this through our component's warning logic
+                $this->issueWarning($report->post->user->id); 
+                $report->post->delete();
+            }
+            
+            $report->update(['is_resolved' => true]);
         }
-        $report->update(['is_resolved' => true]);
     }
 
     public function dismissFlag($reportId) {
-        Report::find($reportId)->update(['is_resolved' => true]);
+        $report = Report::find($reportId);
+        if ($report) {
+            $report->update(['is_resolved' => true]);
+        }
     }
 
     // --- User Management Methods ---
     public function issueWarning($userId) {
-        User::find($userId)->issueWarning();
+        $user = User::find($userId);
+        
+        if ($user) {
+            // Stop adding warnings if they are already suspended
+            if ($user->status === 'SUSPENDED') {
+                return; 
+            }
+
+            $newCount = $user->warning_count + 1;
+
+            if ($newCount >= 3) {
+                // Cap at 3 and auto-suspend
+                $user->update([
+                    'warning_count' => 3,
+                    'status' => 'SUSPENDED' // Updates the UI badge
+                ]);
+                
+                $user->blacklist()->updateOrCreate(
+                    ['user_id' => $user->id],
+                    ['status' => 'SUSPENDED', 'expiry_date' => now()->addDays(7)]
+                );
+            } else {
+                // Just increment the warning
+                $user->update(['warning_count' => $newCount]);
+            }
+        }
     }
 
     public function pardon($userId) {
-        User::find($userId)->pardon();
+        $user = User::find($userId);
+        if ($user) {
+            // Reset everything back to 0 and ACTIVE
+            $user->update([
+                'warning_count' => 0,
+                'status' => 'ACTIVE'
+            ]);
+            
+            if ($user->blacklist) {
+                $user->blacklist->update([
+                    'warning_count' => 0,
+                    'status' => 'ACTIVE',
+                    'expiry_date' => null
+                ]);
+            }
+        }
     }
 
     public function manualSuspend($userId) {
         $user = User::find($userId);
-        $user->blacklist()->updateOrCreate(
-            ['user_id' => $user->id],
-            ['status' => 'SUSPENDED', 'expiry_date' => now()->addDays(7)]
-        );
+        if ($user) {
+            // Immediately set status to suspended
+            $user->update(['status' => 'SUSPENDED']);
+            
+            $user->blacklist()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['status' => 'SUSPENDED', 'expiry_date' => now()->addDays(7)]
+            );
+        }
+    }
+
+    public function deleteUser($userId) {
+        $user = User::find($userId);
+        
+        // Ensure the user exists and the admin isn't deleting themselves
+        if ($user && $user->id !== auth()->id()) {
+            $user->delete();
+        }
     }
 }; ?>
 
-<div class="p-6 text-gray-200" x-data="{ activeTab: @entangle('activeTab') }">
+<div class="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen text-gray-900 font-sans" x-data="{ activeTab: @entangle('activeTab') }">
+    
+    <!-- Header Area -->
+    <div class="mb-8">
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">User Management</h1>
+        <p class="text-sm text-gray-500 mt-1">Manage members, faculty, and community reports</p>
+    </div>
+
     <!-- Tab Navigation -->
-    <div class="flex border-b border-gray-700 mb-6">
+    <div class="flex overflow-x-auto border-b border-gray-200 mb-6 no-scrollbar">
         <button @click="activeTab = 'members'" 
-                class="px-6 py-3 border-b-2 font-medium transition"
-                :class="activeTab === 'members' ? 'border-green-500 text-green-500' : 'text-gray-400 border-transparent'">
+                class="px-6 py-3 border-b-2 font-medium text-sm transition whitespace-nowrap"
+                :class="activeTab === 'members' ? 'border-green-600 text-green-600' : 'text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300'">
             Members
         </button>
         <button @click="activeTab = 'lecturers'" 
-                class="px-6 py-3 border-b-2 font-medium transition"
-                :class="activeTab === 'lecturers' ? 'border-green-500 text-green-500' : 'text-gray-400 border-transparent'">
+                class="px-6 py-3 border-b-2 font-medium text-sm transition whitespace-nowrap"
+                :class="activeTab === 'lecturers' ? 'border-green-600 text-green-600' : 'text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300'">
             Lecturers
         </button>
         <button @click="activeTab = 'moderation'" 
-                class="px-6 py-3 border-b-2 font-medium transition"
-                :class="activeTab === 'moderation' ? 'border-green-500 text-green-500' : 'text-gray-400 border-transparent'">
-            Moderation ({{ $reports->count() }})
+                class="px-6 py-3 border-b-2 font-medium text-sm transition whitespace-nowrap flex items-center gap-2"
+                :class="activeTab === 'moderation' ? 'border-green-600 text-green-600' : 'text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300'">
+            Moderation 
+            @if($reports->count() > 0)
+                <span class="bg-red-100 text-red-600 py-0.5 px-2 rounded-full text-xs font-bold">{{ $reports->count() }}</span>
+            @endif
         </button>
     </div>
 
     <!-- MEMBERS TAB -->
     <div x-show="activeTab === 'members'" x-cloak>
-        <div class="bg-gray-800 rounded-lg shadow border border-gray-700">
-            <table class="w-full text-left">
-                <thead class="bg-gray-900 text-gray-300">
-                    <tr>
-                        <th class="p-4">Name</th>
-                        <th class="p-4">Status</th>
-                        <th class="p-4">Warnings</th>
-                        <th class="p-4 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-700">
-                    @foreach($users as $user)
-                        <tr class="hover:bg-gray-750">
-                            <td class="p-4">{{ $user->name }}</td>
-                            <td class="p-4">
-                                <span class="px-2 py-1 text-xs rounded {{ $user->status === 'ACTIVE' ? 'bg-green-900' : 'bg-red-900' }}">
-                                    {{ $user->status }}
-                                </span>
-                            </td>
-                            <td class="p-4">{{ $user->warning_count }}</td>
-                            <td class="p-4 text-right space-x-2">
-                                <button wire:click="issueWarning({{ $user->id }})" class="text-orange-400 hover:text-orange-300 text-sm">Warn</button>
-                                <button wire:click="manualSuspend({{ $user->id }})" class="text-red-400 hover:text-red-300 text-sm">Suspend</button>
-                                <button wire:click="pardon({{ $user->id }})" class="text-green-400 hover:text-green-300 text-sm">Pardon</button>
-                            </td>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold tracking-wider">
+                        <tr>
+                            <th class="p-4 sm:px-6">Name</th>
+                            <th class="p-4 sm:px-6">Status</th>
+                            <th class="p-4 sm:px-6">Warnings</th>
+                            <th class="p-4 sm:px-6 text-right">Actions</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-
- <!-- LECTURERS TAB -->
-<div x-show="activeTab === 'lecturers'" x-cloak x-data="{ showModal: false }">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">Faculty Members</h2>
-        <button @click="showModal = true" class="bg-green-600 px-4 py-2 rounded text-white font-medium hover:bg-green-700">
-            Add Lecturer
-        </button>
-    </div>
-
-    <!-- The Modal Overlay -->
-    <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" x-cloak>
-        <div @click.away="showModal = false" class="w-full max-w-md">
-            <livewire:admin.register-lecturer-modal />
-        </div>
-    </div>
-
-    <div class="bg-gray-800 rounded-lg shadow border border-gray-700 p-4">
-        @foreach($lecturers as $lecturer)
-            <div class="flex justify-between p-3 border-b border-gray-700 last:border-0">
-                <span>{{ $lecturer->name }}</span>
-                <span class="text-gray-400">{{ $lecturer->email }}</span>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach($users as $user)
+                            <tr class="hover:bg-gray-50/80 transition duration-150" wire:key="user-{{ $user->id }}">
+                                <td class="p-4 sm:px-6 font-medium text-gray-900 whitespace-nowrap">{{ $user->name }}</td>
+                                <td class="p-4 sm:px-6 whitespace-nowrap">
+                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-md {{ $user->status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                        {{ $user->status }}
+                                    </span>
+                                </td>
+                                <td class="p-4 sm:px-6 whitespace-nowrap">
+                                    <span class="{{ $user->warning_count >= 2 ? 'text-red-600 font-bold' : 'text-gray-600' }}">
+                                        {{ $user->warning_count }} / 3
+                                    </span>
+                                </td>
+                                <td class="p-4 sm:px-6 flex justify-end items-center space-x-4 whitespace-nowrap">
+                                    @if($user->status !== 'SUSPENDED')
+                                        <button wire:click="issueWarning({{ $user->id }})" class="text-orange-600 hover:text-orange-700 text-sm font-medium transition">Warn</button>
+                                        <button wire:click="manualSuspend({{ $user->id }})" class="text-red-600 hover:text-red-700 text-sm font-medium transition">Suspend</button>
+                                    @else
+                                        <button wire:click="pardon({{ $user->id }})" class="text-green-600 hover:text-green-700 text-sm font-bold transition">Pardon</button>
+                                    @endif
+                                    
+                                    <!-- Delete Button (Trash Icon) -->
+                                    <button wire:click="deleteUser({{ $user->id }})" 
+                                            wire:confirm="Are you sure you want to permanently delete this user?" 
+                                            class="text-gray-400 hover:text-red-600 transition" title="Delete User">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        @endforeach
+            
+            @if($users->hasPages())
+                <div class="p-4 sm:px-6 border-t border-gray-100 bg-gray-50/50">
+                    {{ $users->links() }}
+                </div>
+            @endif
+        </div>
     </div>
-</div>
+
+    <!-- LECTURERS TAB -->
+    <div x-show="activeTab === 'lecturers'" x-cloak x-data="{ showModal: false }">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h2 class="text-lg font-bold text-gray-900">Faculty Members</h2>
+            <button @click="showModal = true" class="bg-green-600 px-5 py-2.5 rounded-xl text-white text-sm font-medium hover:bg-green-700 transition shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                + Add Lecturer
+            </button>
+        </div>
+
+        <div x-show="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4" x-cloak>
+            <div @click.away="showModal = false" class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+                <livewire:admin.register-lecturer-modal />
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 divide-y divide-gray-100">
+            @forelse($lecturers as $lecturer)
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:px-6 hover:bg-gray-50/80 transition duration-150 gap-2" wire:key="lecturer-{{ $lecturer->id }}">
+                    <span class="font-medium text-gray-900">{{ $lecturer->name }}</span>
+                    <div class="flex items-center justify-between w-full sm:w-auto space-x-6">
+                        <span class="text-gray-500 text-sm">{{ $lecturer->email }}</span>
+                        <!-- Delete Button (Trash Icon) -->
+                        <button wire:click="deleteUser({{ $lecturer->id }})" 
+                                wire:confirm="Are you sure you want to remove this lecturer?" 
+                                class="text-gray-400 hover:text-red-600 transition p-1 rounded-md hover:bg-red-50" title="Delete Lecturer">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <div class="p-8 text-center">
+                    <p class="text-gray-500 text-sm">No lecturers registered.</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
 
     <!-- MODERATION TAB -->
     <div x-show="activeTab === 'moderation'" x-cloak>
-        <div class="bg-gray-800 rounded-lg shadow border border-gray-700">
-            <table class="w-full text-left">
-                <thead class="bg-gray-900 text-gray-300">
-                    <tr>
-                        <th class="p-4">Post</th>
-                        <th class="p-4 text-right">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-700">
-                    @forelse($reports as $report)
-                        <tr class="hover:bg-gray-750">
-                            <td class="p-4 italic text-gray-400">"{{ Str::limit($report->post->content ?? 'Deleted', 50) }}"</td>
-                            <td class="p-4 text-right space-x-3">
-                                <button wire:click="confirmFlag({{ $report->id }})" class="text-red-400 font-bold">Confirm</button>
-                                <button wire:click="dismissFlag({{ $report->id }})" class="text-gray-400">Dismiss</button>
-                            </td>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-semibold tracking-wider">
+                        <tr>
+                            <th class="p-4 sm:px-6">Post Content</th>
+                            <th class="p-4 sm:px-6 whitespace-nowrap">Reported By</th>
+                            <th class="p-4 sm:px-6 text-right">Action</th>
                         </tr>
-                    @empty
-                        <tr><td colspan="2" class="p-8 text-center text-gray-500">No flags.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($reports as $report)
+                            <tr class="hover:bg-gray-50/80 transition duration-150" wire:key="report-{{ $report->id }}">
+                                <td class="p-4 sm:px-6 text-gray-700 italic min-w-[250px]">
+                                    "{{ Str::limit($report->post->content ?? 'Post was deleted', 80) }}"
+                                </td>
+                                <td class="p-4 sm:px-6 text-gray-500 text-sm whitespace-nowrap">
+                                    {{ $report->reporter->name ?? 'System/Deleted User' }}
+                                </td>
+                                <td class="p-4 sm:px-6 flex justify-end space-x-4 whitespace-nowrap">
+                                    <button wire:click="confirmFlag({{ $report->id }})" class="text-red-600 text-sm font-semibold hover:text-red-700 transition bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg">Confirm</button>
+                                    <button wire:click="dismissFlag({{ $report->id }})" class="text-gray-500 text-sm font-medium hover:text-gray-800 transition px-3 py-1.5 hover:bg-gray-100 rounded-lg">Dismiss</button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="p-10 text-center">
+                                    <div class="flex flex-col items-center justify-center text-gray-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mb-3 text-green-200">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <p class="text-sm font-medium text-gray-500">No flags to review.</p>
+                                        <p class="text-xs mt-1">The community is behaving well!</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
