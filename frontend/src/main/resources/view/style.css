@@ -1,0 +1,375 @@
+/* ============================================================
+   Smart Discussion Forum — Glassmorphism Theme
+   Used by all hard-coded JavaFX screens (Login, Register, Declined)
+   ============================================================ */
+
+.root-pane {
+    -fx-background-color: #1a2e1a;
+}
+
+/* ---- Typography ---- */
+.title-label {
+    -fx-text-fill: white;
+    -fx-font-size: 36px;
+    -fx-font-weight: 300;
+    -fx-font-family: "Segoe UI Light", "Helvetica Neue", Arial, sans-serif;
+}
+
+.subtitle-label {
+    -fx-text-fill: #557255;
+    -fx-font-size: 13px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+}
+
+.section-label {
+    -fx-text-fill: white;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.hint-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.75);
+    -fx-font-size: 12px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.error-label {
+    -fx-text-fill: #ff6b6b;
+    -fx-font-size: 12px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* ---- Glass input fields (pill-shaped) ---- */
+.glass-field {
+    -fx-background-color: rgba(0, 0, 0, 0.35);
+    -fx-background-radius: 30;
+    -fx-border-color: rgba(255, 255, 255, 0.7);
+    -fx-border-radius: 30;
+    -fx-border-width: 1;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.65);
+    -fx-font-size: 13px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-padding: 12 22 12 22;
+    -fx-pref-height: 46;
+    -fx-max-width: 340;
+    -fx-pref-width: 340;
+}
+
+/*
+.glass-field:focused {
+    -fx-border-color: rgba(255, 255, 255, 0.95);
+    -fx-background-color: rgba(0, 0, 0, 0.45);
+}
+
+
+/* ---- Primary login / register button ---- */
+.login-button {
+    -fx-background-color: #4caf50;
+    -fx-background-radius: 30;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-cursor: hand;
+    -fx-padding: 14 40 14 40;
+    -fx-pref-height: 48;
+    -fx-max-width: 340;
+    -fx-pref-width: 340;
+}
+
+.login-button:hover {
+    -fx-background-color: #43a047;
+}
+/*
+.login-button:pressed {
+    -fx-background-color: #388e3c;
+}
+ */
+
+/* ---- Hyperlinks ---- */
+.glass-hyperlink {
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-border-color: transparent;
+    -fx-underline: false;
+}
+
+.glass-hyperlink:hover {
+    -fx-text-fill: #b4eccf;
+    -fx-underline: true;
+}
+
+.link-separator {
+    -fx-text-fill: rgba(255, 255, 255, 0.6);
+    -fx-font-size: 12px;
+}
+
+/* ---- Bottom feature boxes ---- */
+.feature-box {
+    -fx-background-color: rgba(0, 0, 0, 0.30);
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(255, 255, 255, 0.45);
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-padding: 16 12 16 12;
+    -fx-alignment: center;
+    -fx-pref-width: 110;
+    -fx-min-width: 100;
+}
+
+.feature-box-title {
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.feature-box-text {
+    -fx-text-fill: rgba(255, 255, 255, 0.75);
+    -fx-font-size: 10px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+}
+
+
+/*declined screen */
+
+
+.declined-title {
+    -fx-text-fill: #dd1111;
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.declined-message {
+    -fx-text-fill: rgba(255, 255, 255, 0.9);
+    -fx-font-size: 15px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-wrap-text: true;
+}
+.declined-card {
+    -fx-background-color: #000000; /* Changes the box color to pure black */
+    -fx-background-radius: 25;     /* Keeps the smooth rounded corners */
+    -fx-border-color: #333333;     /* Dark charcoal border so the edges look clean */
+    -fx-border-radius: 25;
+    -fx-border-width: 1.5;
+    -fx-padding: 40 50 40 50;
+    -fx-max-width: 480;
+
+}
+
+/* ---- Platform rules dialog ---- */
+.rules-dialog-title {
+    -fx-text-fill: #2b552b;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.rules-dialog-item {
+    -fx-text-fill: #333333;
+    -fx-font-size: 13px;
+}
+
+
+/* ---- Right Side White Card Container (With soft glass-drop lighting) ---- */
+.white-glass-card {
+    -fx-background-color: rgba(255, 255, 255, 0.92);
+    -fx-background-radius: 30; /* Heavily rounded matching Screen 1 */
+    -fx-border-color: rgba(255, 255, 255, 0.6);
+    -fx-border-radius: 30;
+    -fx-border-width: 1.5;
+    -fx-padding: 50 45 50 45;
+    -fx-min-width: 430;
+    -fx-max-width: 430;
+    -fx-pref-width: 430;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.12), 25, 0, 0, 8);
+}
+
+.card-welcome-title {
+    -fx-text-fill: #142e14;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.card-welcome-subtitle {
+    -fx-text-fill: #556b55;
+    -fx-font-size: 13px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.card-input-label {
+    -fx-text-fill: #2e4d2e;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-padding: 0 0 0 8; /* Left indent alignment for pill shapes */
+}
+
+/* ---- High-Contrast Glass Input Fields (Fully Rounded Pill Shape) ---- */
+.card-glass-field {
+    -fx-background-color: rgba(0, 0, 0, 0.05); /* Soft inner tint */
+    -fx-background-radius: 30; /* Complete Pill Shape */
+    -fx-border-color:white;
+    -fx-border-radius: 30;
+    -fx-border-width: 1.5;
+    -fx-text-fill: black;
+    -fx-prompt-text-fill: #778877;
+    -fx-font-size: 15px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-padding: 12 22 12 22;
+    -fx-pref-height: 46;
+    -fx-max-width: 340;
+    -fx-pref-width: 340;
+}
+
+
+/* ---- Remember Me Checkbox Details ---- */
+.card-checkbox {
+    -fx-text-fill: #445544;
+    -fx-font-size: 13px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-padding: 0 0 0 4;
+}
+
+.card-checkbox .box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: rgba(20, 46, 20, 0.3);
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+/* ---- Beautiful Pill-Shaped Glass Action Button ---- */
+.card-glass-button {
+    -fx-background-color: #4caf50;
+    -fx-background-radius: 30; /* Match screen 1 pill button */
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-cursor: hand;
+    -fx-padding: 14 0 14 0;
+    -fx-pref-height: 48;
+    -fx-max-width: 340;
+    -fx-pref-width: 340;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(three-pass-box, rgba(76, 175, 80, 0.3), 10, 0, 0, 4);
+}
+
+.card-glass-button:hover {
+    -fx-background-color: #43a047;
+    -fx-effect: dropshadow(three-pass-box, rgba(67, 160, 71, 0.5), 14, 0, 0, 4);
+}
+
+/* ---- Inner Link Typographies ---- */
+.card-hyperlink-green {
+    -fx-text-fill: #4caf50;
+    -fx-font-size: 13px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-underline: false;
+}
+.card-hyperlink-green:hover {
+    -fx-text-fill: #388e3c;
+    -fx-underline: true;
+}
+
+.card-footer-text {
+    -fx-text-fill: #556655;
+    -fx-font-size: 13px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.card-hyperlink-green-bold {
+    -fx-text-fill: #4caf50;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-underline: false;
+}
+.card-hyperlink-green-bold:hover {
+    -fx-text-fill: #2e7d32;
+    -fx-underline: true;
+}
+
+/* ---- Soft Mint Background ---- */
+.mint-root-pane {
+    -fx-background-color: #d8eedf; /* The light pastel mint green */
+}
+
+/* ---- Typography Colors ---- */
+.mint-title-label {
+    -fx-text-fill: #1e4620; /* Deep forest green */
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.mint-subtitle-label {
+    -fx-text-fill: #557255; /* Muted dark sage */
+    -fx-font-size: 14px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.mint-text-label {
+    -fx-text-fill: #2d4a2d; /* Dark green for footer texts/checkboxes */
+    -fx-font-size: 13px;
+}
+
+/* ---- Sage Green Input Fields (Fully Rounded Pill Shape) ---- */
+.mint-field {
+    -fx-background-color: #9ab49f; /* Muted sage green background */
+    -fx-background-radius: 30;
+    -fx-border-color: transparent;
+    -fx-text-fill: #1a331a; /* Dark text inside fields */
+    -fx-prompt-text-fill: #3d593d; /* Darker prompt text for legibility */
+    -fx-font-size: 14px;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-padding: 12 22 12 22;
+    -fx-pref-height: 46;
+    -fx-max-width: 340;
+    -fx-pref-width: 340;
+}
+
+/* ---- Dark Forest Green Button ---- */
+.mint-button {
+    -fx-background-color: #46734a; /* Deep green button background */
+    -fx-background-radius: 30;
+    -fx-text-fill: white;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-cursor: hand;
+    -fx-padding: 14 40 14 40;
+    -fx-pref-height: 48;
+    -fx-max-width: 340;
+    -fx-pref-width: 340;
+}
+
+.mint-button:hover {
+    -fx-background-color: #385d3b;
+}
+
+/* ---- Dark Green Hyperlinks ---- */
+.mint-hyperlink {
+    -fx-text-fill: #1e4620;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-underline: false;
+}
+.mint-hyperlink:hover {
+    -fx-underline: true;
+}
