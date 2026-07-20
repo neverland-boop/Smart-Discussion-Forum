@@ -5,10 +5,10 @@ use Livewire\Attributes\Layout;
 new #[Layout('components.layouts.app')] class extends Component {
     // Array of student rows stored in local component state memory
     public array $studentGrades = [
-        ['id' => 'STU001', 'name' => 'Anthony Evans', 'quiz' => 'Quiz 1: OS Sync', 'score' => 88, 'total' => 100, 'grade' => 'A'],
-        ['id' => 'STU002', 'name' => 'Patience Amara', 'quiz' => 'Quiz 1: OS Sync', 'score' => 74, 'total' => 100, 'grade' => 'B'],
-        ['id' => 'STU003', 'name' => 'Francis Duncan', 'quiz' => 'Quiz 1: OS Sync', 'score' => 69, 'total' => 100, 'grade' => 'C'],
-        ['id' => 'STU004', 'name' => 'Blessing Chidi', 'quiz' => 'Quiz 1: OS Sync', 'score' => 45, 'total' => 100, 'grade' => 'F'],
+        ['id' => 'STU001', 'name' => 'Anthony Evans', 'quiz' => 'Quiz 1', 'score' => 88, 'total' => 100, 'grade' => 'A'],
+        ['id' => 'STU002', 'name' => 'Patience Amara', 'quiz' => 'Quiz 1', 'score' => 74, 'total' => 100, 'grade' => 'B'],
+        ['id' => 'STU003', 'name' => 'Francis Duncan', 'quiz' => 'Quiz 1', 'score' => 69, 'total' => 100, 'grade' => 'C'],
+        ['id' => 'STU004', 'name' => 'Blessing Chidi', 'quiz' => 'Quiz 1', 'score' => 45, 'total' => 100, 'grade' => 'F'],
     ];
 
     // System benchmarks for the green helper card on the right
@@ -135,7 +135,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <span class="w-6 h-6 flex items-center justify-center text-xs font-black rounded-lg border border-black/5 {{ $scale['color'] }}">
                                 {{ $scale['grade'] }}
                             </span>
-                            <span class="text-xs font-bold text-zinc-800 dark:text-zinc-200">Grade Passband</span>
+                        
                         </div>
                         <span class="text-xs font-mono font-extrabold text-zinc-900 dark:text-zinc-100">
                             {{ $scale['range'] }}
@@ -147,7 +147,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <span class="w-6 h-6 flex items-center justify-center text-xs font-black rounded-lg border border-black/5 bg-red-50 text-red-700">
                             F
                         </span>
-                        <span class="text-xs font-bold text-zinc-800 dark:text-zinc-200">Fail Condition</span>
+                       
                     </div>
                     <span class="text-xs font-mono font-extrabold text-zinc-900 dark:text-zinc-100">0% - 49%</span>
                 </div>

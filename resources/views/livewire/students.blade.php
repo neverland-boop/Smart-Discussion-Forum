@@ -35,7 +35,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                             <th class="p-3">Student Details</th>
                             <th class="p-3">Email Address</th>
                             <th class="p-3 text-center">Current Standing</th>
-                            <th class="p-3 text-center">Actions</th>
+                        
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800 font-medium text-zinc-700 dark:text-zinc-300">
@@ -63,13 +63,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                                     {{ $student['standing'] }}
                                 </span>
                             </td>
-
-                            <!-- Action Triggers -->
-                            <td class="p-3 text-center">
-                                <button class="text-zinc-500 hover:text-zinc-800 text-[10px] font-bold px-2 py-1 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm cursor-pointer transition-colors">
-                                    View Log
-                                </button>
-                            </td>
+                            
                         </tr>
                         @endforeach
                     </tbody>

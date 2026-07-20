@@ -57,7 +57,7 @@
                         
                         <!-- Navigation Shortcuts linking directly into your coordinated layout frames -->
                         <a href="{{ route('settings') }}" wire:navigate class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
-                             Settings
+                            ⚙️ Settings
                         </a>
                         
                         <a href="{{ route('settings') }}" wire:navigate class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors border-b border-zinc-100 dark:border-zinc-800">
@@ -86,10 +86,7 @@
                 <nav class="flex flex-col gap-1.5 text-sm font-semibold text-zinc-300">
                     <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'bg-[#10b981] text-white shadow-md' : 'hover:bg-white/5' }}">
                         <span>🏠</span> Dashboard
-                    </a>
-                    <a href="{{ route('discussions') }}" wire:navigate class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all {{ request()->routeIs('discussions') ? 'bg-[#10b981] text-white shadow-md' : 'hover:bg-white/5' }}">
-                        <span>💬</span> Discussions
-                    </a>
+                    
                     <a href="{{ route('quizzes.create') }}" wire:navigate class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all {{ request()->routeIs('quizzes.*') ? 'bg-[#10b981] text-white shadow-md' : 'hover:bg-white/5' }}">
                         <span>📝</span> Quizzes
                     </a>

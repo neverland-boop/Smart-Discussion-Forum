@@ -14,8 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // 1. Central Hub Dashboard Layout
     Volt::route('/dashboard', 'lecturer-dashboard')->name('dashboard');
     
-    // 2. Forums & Messaging Channels
-    Volt::route('/discussions', 'chat-room')->name('discussions');
+ 
     
     // 3. Quizzes Portal Panel (The screen we built)
     Volt::route('/quizzes/create', 'create-quiz')->name('quizzes.create');
