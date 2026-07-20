@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# Install system dependencies and PHP extensions for Laravel & PostgreSQL/MySQL
+# Install system dependencies and PHP extensions for Laravel & PostgreSQL
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -29,7 +29,8 @@ RUN chmod -R 775 storage bootstrap/cache
 # Copy Nginx configuration template
 COPY ./docker/nginx.conf /etc/nginx/sites-available/default
 
-# Expose Render's dynamic port via an entrypoint script
+# Expose Render's dynamic port
 EXPOSE 10000
 
-CMD ["sh", "-c", "php artisan config:cache && php artisan route:cache && php artisan migrate --force && sed -i 's/80/10000/g' /etc/nginx/sites-available/default && service nginx start && php-fpm"]
+# Startup script: Copy .env.example to .env if .env doesn't exist, clear cache, run migrations, and start server
+CMD ["sh", "-c", "if [ ! -f .env ]; then cp .env.example .env; fi && php artisan key:generate --force && php artisan config:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000"]
