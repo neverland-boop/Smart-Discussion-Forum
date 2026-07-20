@@ -10,8 +10,6 @@ services:
     runtime: docker
     plan: free
     rootDir: backend
-    buildCommand: "composer install --no-dev --optimize-autoloader"
-    startCommand: "php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000"
     envVars:
       - key: APP_ENV
         value: production
@@ -21,7 +19,23 @@ services:
         generateValue: true
       - key: DB_CONNECTION
         value: pgsql
-      - key: DATABASE_URL
+      - key: DB_HOST
         fromDatabase:
           name: smartforum-db
-          property: connectionString
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: smartforum-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: smartforum-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: smartforum-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: smartforum-db
+          property: password

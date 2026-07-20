@@ -33,4 +33,4 @@ COPY ./docker/nginx.conf /etc/nginx/sites-available/default
 EXPOSE 10000
 
 # Startup script: Copy .env.example to .env if .env doesn't exist, clear cache, run migrations, and start server
-CMD ["sh", "-c", "if [ ! -f .env ]; then cp .env.example .env; fi && php artisan key:generate --force && php artisan config:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000"]
+CMD ["sh", "-c", "cp -n .env.example .env || true && php artisan config:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000"]
