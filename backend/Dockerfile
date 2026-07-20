@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# Install system dependencies and PHP extensions for Laravel & PostgreSQL
+# Install system dependencies, PHP extensions, Node.js and NPM
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     nginx \
-    libpq-dev
+    libpq-dev \
+    nodejs \
+    npm
 
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd
 
@@ -20,17 +22,19 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
-# Install dependencies (production optimized)
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Set up permissions for Laravel storage and cache
+# Install NPM dependencies & build Vite frontend assets for Blade templates
+RUN npm install
+RUN npm run build
+
+# Set permissions
 RUN chmod -R 775 storage bootstrap/cache
 
-# Copy Nginx configuration template
+# Copy Nginx configuration
 COPY ./docker/nginx.conf /etc/nginx/sites-available/default
 
-# Expose Render's dynamic port
 EXPOSE 10000
 
-# Startup script: Copy .env.example to .env if .env doesn't exist, clear cache, run migrations, and start server
 CMD ["sh", "-c", "php artisan config:cache && php artisan route:cache && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000"]

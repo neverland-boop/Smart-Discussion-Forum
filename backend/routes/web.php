@@ -5,10 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Volt;
 
 Route::get('/', function () {
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Smart Discussion Forum API is live and running!'
-    ]);
+    return view('welcome'); 
 });
 
 // --- Public/Unprotected Routes ---
