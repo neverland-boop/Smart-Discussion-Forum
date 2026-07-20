@@ -4,7 +4,12 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Volt;
 
-Route::view('/', 'welcome');
+Route::get('/', function () {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Smart Discussion Forum API is live and running!'
+    ]);
+});
 
 // --- Public/Unprotected Routes ---
 Route::get('/account-blacklisted', function () {
