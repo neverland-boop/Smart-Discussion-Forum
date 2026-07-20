@@ -5,13 +5,21 @@ use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\TopicController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\QuizController;
-use App\Http\Controllers\Api\QuizAttemptController;
 use Illuminate\Support\Facades\Route;
 
-// Public Authentication Routes
+/*
+|--------------------------------------------------------------------------
+| Public Authentication Routes
+|--------------------------------------------------------------------------
+*/
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes (Java GUI & General API)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth:sanctum'])->group(function () {
     
     // --- Administrator Only ---
@@ -22,42 +30,43 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // --- Quiz Management (Lecturer/Admin) ---
     Route::middleware(['role:lecturer|admin'])->group(function () {
+        // Generates POST /api/groups/{group}/quizzes mapped to QuizController@store
         Route::apiResource('groups.quizzes', QuizController::class)->only(['store']);
+        
+        // Generates GET /api/quizzes/{quiz}/report mapped to QuizController@report
         Route::get('/quizzes/{quiz}/report', [QuizController::class, 'report']);
     });
     
     // --- General Group Actions ---
-    // Custom action goes BEFORE the resource
     Route::post('/groups/join', [GroupController::class, 'join']); 
-    
-    // Using apiResource for index and store
     Route::apiResource('groups', GroupController::class)->only(['index', 'store']);
     
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
-// --- FORUM & INTERACTION ROUTES (Protected by Blacklist) ---
+/*
+|--------------------------------------------------------------------------
+| Forum & Interaction Routes (Protected by Blacklist)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth:sanctum', 'check.blacklist'])->group(function () {
     
-    // Nested Resource for Topics (Handles GET /groups/{group}/topics and POST /groups/{group}/topics)
+    // --- Topics ---
     Route::apiResource('groups.topics', TopicController::class)->only(['index', 'store']);
-
-    // Custom Moderation/Access Actions
     Route::post('/topics/request-access', [TopicController::class, 'requestAccess']);
     Route::post('/topics/approve', [TopicController::class, 'approve']);
     Route::post('/topics/warn', [TopicController::class, 'warn']);
 
-    Route::get('/quizzes', [QuizController::class, 'index']); 
+    // --- Quizzes (Student Access) ---
+    Route::get('/quizzes', [QuizController::class, 'index']); // Assuming you have an index method
+    
+    // Generates GET /api/quizzes/{quiz} mapped to QuizController@show
     Route::get('/quizzes/{quiz}', [QuizController::class, 'show']); 
+    
+    // Generates POST /api/attempts/{attempt}/submit mapped to QuizController@submit
     Route::post('/attempts/{attempt}/submit', [QuizAttemptController::class, 'submit']);
 
-    // --- POSTS & MODERATION ---
-    // This now handles both GET /topics/{topic}/posts AND POST /topics/{topic}/posts
+    // --- Posts & Moderation ---
     Route::apiResource('topics.posts', PostController::class)->only(['index', 'store']);
-    
-    // NEW: Community Flagging Endpoint (POST /posts/{post}/flag)
     Route::post('/posts/{post}/flag', [PostController::class, 'flag']);
-    
-    // Note: I replaced the old '/topics/message' custom route because 
-    // the apiResource 'topics.posts' 'store' method handles this cleanly now.
 });

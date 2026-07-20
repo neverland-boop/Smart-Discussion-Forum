@@ -47,6 +47,8 @@ Route::middleware(['auth', 'verified', 'role:student', 'check.blacklist'])->grou
 Route::middleware(['auth', 'role:lecturer'])->group(function () {
     Volt::route('/lecturer/students', 'lecturer.students')->name('lecturer.students');
     Volt::route('/lecturer/grades', 'lecturer.grades')->name('lecturer.grades');
+    Volt::route('/lecturer/quizzes', 'lecturer.quizzes')->name('lecturer.quizzes');
+    Volt::route('/lecturer/reports', 'lecturer.reports')->name('reports');
 });
 
 require __DIR__.'/auth.php';

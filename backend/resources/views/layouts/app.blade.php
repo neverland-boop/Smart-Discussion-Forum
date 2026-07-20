@@ -58,8 +58,8 @@
                         @if(auth()->user()->hasAnyRole(['lecturer']))
                             <a href="{{ route('lecturer.students') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('lecturer.students') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Students</a>
                             <a href="{{ route('lecturer.grades') }}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('lecturer.grades') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Grades</a>
-                            <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('lecturer.quiz-control') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Quiz Control</a>
-                        @endif
+                            <a href="{{route('lecturer.quizzes')}}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('lecturer.quiz-control') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Quiz Control</a>
+                              @endif
                         
                         <!-- Admin Links -->
                         @if(auth()->user()->hasAnyRole(['admin']))
@@ -69,7 +69,7 @@
                         
                         <!-- Shared Links -->
                         @if(auth()->user()->hasAnyRole(['lecturer', 'admin']))
-                            <a href="#" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('reports.*') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Reports</a>
+                            <a href="{{route('reports')}}" @click="sidebarOpen = false" class="w-full flex items-center px-4 py-3 rounded-md transition-colors {{ request()->routeIs('reports.*') ? 'bg-green-900 text-white font-semibold shadow-inner' : 'text-green-100 hover:bg-green-600 hover:text-white' }}">Reports</a>
                         @endif  
 
                     </nav>

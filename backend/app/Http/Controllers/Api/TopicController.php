@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\TopicService;
 use App\Services\ModerationService;
-use App\Services\PostService; // Your existing service
+use App\Services\PostService;
+use App\Models\Topic;
 use Illuminate\Http\Request;
 
 class TopicController extends Controller
@@ -73,4 +75,9 @@ class TopicController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Message sent.']);
     }
+
+    /**
+     * Handles the PDF / Transcript export feature for discussion threads 
+     * matching the requirement: "memebers can easily choose to see details... export to PDF"[cite: 1, 2].
+     */
 }

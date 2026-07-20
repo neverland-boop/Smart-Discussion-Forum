@@ -6,35 +6,64 @@ use App\Models\Quiz;
 use App\Models\QuizAttempt;
 use App\Models\Mark;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class QuizService
 {
-    // --- 1. QUIZ CREATION ---
-    public function createQuiz(array $data, int $groupId, User $creator): Quiz
+    // --- 1. QUIZ & QUESTION CREATION (Transaction Protected) ---
+    public function createQuiz(array $quizData, array $questionsData, int $groupId, int $creatorId): Quiz
     {
-        return Quiz::create([
-            'title'       => $data['title'],
-            'description' => $data['description'],
-            'time_limit'  => $data['time_limit'],
-            'start_time'  => $data['start_time'],
-            'auto_submit' => $data['auto_submit'] ?? true,
-            'creator_id'  => $creator->id, 
-            'group_id'    => $groupId,
-        ]);
+        // Use a database transaction to ensure both Quiz and Questions save together securely.
+        return DB::transaction(function () use ($quizData, $questionsData, $groupId, $creatorId) {
+            
+            // 1. Create the Quiz Parent Record
+            $quiz = Quiz::create([
+                'title'       => $quizData['title'],
+                'description' => $quizData['description'],
+                'status'      => $quizData['status'] ?? 'DRAFT',
+                'time_limit'  => $quizData['time_limit'],
+                'start_time'  => !empty($quizData['start_time']) ? Carbon::parse($quizData['start_time']) : null,
+                'auto_submit' => $quizData['auto_submit'] ?? true,
+                'creator_id'  => $creatorId, 
+                'group_id'    => $groupId,
+            ]);
+
+            // 2. Prepare Questions for Bulk Insertion
+            $questionsToInsert = [];
+            foreach ($questionsData as $q) {
+                $questionsToInsert[] = [
+                    'quiz_id'        => $quiz->id,
+                    'text'           => $q['text'],
+                    'options'        => json_encode($q['options']), // Encode A,B,C,D map to JSON
+                    'correct_answer' => $q['correct_answer'],
+                    'points'         => $q['points'] ?? 1,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ];
+            }
+
+            // 3. Bulk Insert Questions
+            DB::table('questions')->insert($questionsToInsert);
+
+            // Return the quiz with its newly created questions attached
+            return $quiz->load('questions');
+        });
     }
 
     // --- 2. QUIZ SUBMISSION & SCORING ---
     public function submitAttempt(int $attemptId, array $answers, bool $autoSubmitted = false)
     {
         // Eager load the quiz and its questions to compare answers
-        $attempt = QuizAttempt::where('id', $attemptId)
-        ->whereNull('submitted_at')
-        ->firstOrFail();
+        $attempt = QuizAttempt::with('quiz.questions')
+            ->where('id', $attemptId)
+            ->whereNull('submitted_at')
+            ->firstOrFail();
         
         // 1. Close the attempt record
         $attempt->update([
             'submitted_at'   => now(),
-            'answers'        => json_encode($answers), // Ensure it's stored as JSON
+            'answers'        => json_encode($answers), // Store exact user payload
             'auto_submitted' => $autoSubmitted,
         ]);
 
@@ -45,17 +74,16 @@ class QuizService
         foreach ($attempt->quiz->questions as $question) {
             $totalPossible += $question->points;
             
-            // Check if the user answered this question and if it matches the correct_answer
-            if (isset($answers[$question->id]) && $answers[$question->id] == $question->correct_answer) {
+            // Validate user answer against the correct_answer key (e.g., "B")
+            if (isset($answers[$question->id]) && strtoupper(trim($answers[$question->id])) === strtoupper(trim($question->correct_answer))) {
                 $totalEarned += $question->points;
             }
         }
 
-        // Calculate percentage (avoid division by zero if quiz has no questions)
+        // Calculate percentage (avoid division by zero)
         $calculatedScore = $totalPossible > 0 ? (int) round(($totalEarned / $totalPossible) * 100) : 0;
         
         // 3. Save the official mark to the independent Marks table
-        // We use updateOrCreate to respect your unique constraint ['user_id', 'quiz_id']
         Mark::updateOrCreate(
             [
                 'user_id' => $attempt->user_id,
@@ -72,7 +100,7 @@ class QuizService
     // --- 3. FETCHING QUIZZES ---
     public function getAvailableQuizzes()
     {
-        return Quiz::where('status', 'ANNOUNCED')->latest()->get();
+        return Quiz::where('status', 'PUBLISHED')->latest()->get(); // Adjusted to PUBLISHED based on standard schema
     }
 
     // --- 4. USER STATISTICS ---
@@ -88,10 +116,9 @@ class QuizService
         ];
     }
 
-    // --- 5. RECENT RESULTS (New for Dashboard) ---
+    // --- 5. RECENT RESULTS ---
     public function getRecentResults(User $user, int $limit = 5)
     {
-        // Fetch the user's marks, including the quiz details, ordered by completion date
         return Mark::with('quiz')
             ->where('user_id', $user->id)
             ->latest('updated_at')
