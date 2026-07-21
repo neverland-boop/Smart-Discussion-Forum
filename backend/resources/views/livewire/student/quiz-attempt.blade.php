@@ -30,29 +30,37 @@ new #[Layout('layouts.app')] class extends Component {
         session()->flash('error', 'You have already submitted this quiz.');
         return $this->redirect(route('quizzes'), navigate: true);
     }
-
-    // Now find or create the active one
-    $this->attempt = QuizAttempt::firstOrCreate(
-        ['quiz_id' => $this->quiz->id, 'user_id' => Auth::id(), 'submitted_at' => null],
-        ['start_time' => now()]
-    );
-        
-        if ($this->quiz->start_time && now()->isBefore($this->quiz->start_time)) {
+if ($this->quiz->start_time && now()->isBefore($this->quiz->start_time)) {
             session()->flash('error', 'This quiz has not started yet. Please wait until ' . \Carbon\Carbon::parse($this->quiz->start_time)->format('M d, Y h:i A'));
             return redirect()->route('dashboard'); // Redirect them back to the quiz list
         }
-        
-        // 2. Start or Resume the Attempt (Removed 'violations' default since we aren't tracking it in DB)
+
+        // Block joining after the quiz's global closing time (start_time + time_limit) has passed
+        if ($this->quiz->start_time) {
+            $globalCloseTime = \Carbon\Carbon::parse($this->quiz->start_time)->addMinutes($this->quiz->time_limit);
+            if (now()->isAfter($globalCloseTime)) {
+                session()->flash('error', 'This quiz has closed and is no longer accepting attempts.');
+                return redirect()->route('dashboard');
+            }
+        }
+
+        // 2. Start or Resume the Attempt
         $this->attempt = QuizAttempt::firstOrCreate(
             ['quiz_id' => $this->quiz->id, 'user_id' => Auth::id(), 'submitted_at' => null],
-            ['start_time' => now()] 
+            ['start_time' => now()]
         );
 
-        // 3. Calculate accurate time remaining
-        $elapsedSeconds = now()->diffInSeconds($this->attempt->start_time);
-        $totalSeconds = $this->quiz->time_limit * 60;
-        $this->timeRemaining = max(0, $totalSeconds - $elapsedSeconds);
+        // 3. Calculate time remaining, capped by the quiz's global closing time so a
+        // late joiner only gets what's left of the window, not a fresh full timer.
+        $individualDeadline = $this->attempt->start_time->copy()->addMinutes($this->quiz->time_limit);
+        $deadline = $individualDeadline;
 
+        if ($this->quiz->start_time) {
+            $globalDeadline = \Carbon\Carbon::parse($this->quiz->start_time)->addMinutes($this->quiz->time_limit);
+            $deadline = $individualDeadline->greaterThan($globalDeadline) ? $globalDeadline : $individualDeadline;
+        }
+
+        $this->timeRemaining = $deadline->greaterThan(now()) ? now()->diffInSeconds($deadline) : 0;
         // Pre-fill tracking arrays
         foreach ($this->questions as $q) {
             $this->answers[$q->id] = null;
