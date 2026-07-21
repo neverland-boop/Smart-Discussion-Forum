@@ -66,14 +66,14 @@ new class extends Component {
                 ? $topMember->name 
                 : 'N/A';
 
-            // 4. Quiz Participation Rate
+            // 4. Quiz Participation Rate (FIXED: Now uses 'marks' instead of 'quiz_user')
             $totalQuizzes = DB::table('quizzes')->where('group_id', $group->id)->count();
             if ($totalQuizzes > 0 && $this->totalMembers > 0) {
-                $participatedMembers = DB::table('quiz_user')
-                    ->join('quizzes', 'quiz_user.quiz_id', '=', 'quizzes.id')
+                $participatedMembers = DB::table('marks')
+                    ->join('quizzes', 'marks.quiz_id', '=', 'quizzes.id')
                     ->where('quizzes.group_id', $group->id)
-                    ->distinct('quiz_user.user_id')
-                    ->count('quiz_user.user_id');
+                    ->distinct('marks.user_id')
+                    ->count('marks.user_id');
                     
                 $this->quizParticipationRate = round(($participatedMembers / $this->totalMembers) * 100);
             } else {
@@ -144,11 +144,11 @@ new class extends Component {
                     ->whereDate('posts.created_at', $date->toDateString())
                     ->count();
 
-                // Count quiz attempts in this group on this date
-                // AFTER (Fixed)
-                DB::table('marks')
+                // Count quiz attempts in this group on this date (FIXED: Corrected assignment, table name, and date filter)
+                $quizzesData[] = DB::table('marks')
                     ->join('quizzes', 'marks.quiz_id', '=', 'quizzes.id')
-                    ->where('quizzes.group_id', $this->groupId)
+                    ->where('quizzes.group_id', $groupId)
+                    ->whereDate('marks.created_at', $date->toDateString())
                     ->count(DB::raw('distinct marks.user_id'));
             } catch (\Exception $e) {
                 // Fallback to 0 if tables are missing or queried prematurely
