@@ -145,11 +145,11 @@ new class extends Component {
                     ->count();
 
                 // Count quiz attempts in this group on this date
-                $quizzesData[] = DB::table('quiz_user')
-                    ->join('quizzes', 'quiz_user.quiz_id', '=', 'quizzes.id')
-                    ->where('quizzes.group_id', $groupId)
-                    ->whereDate('quiz_user.created_at', $date->toDateString())
-                    ->count();
+                // AFTER (Fixed)
+                DB::table('marks')
+                    ->join('quizzes', 'marks.quiz_id', '=', 'quizzes.id')
+                    ->where('quizzes.group_id', $this->groupId)
+                    ->count(DB::raw('distinct marks.user_id'));
             } catch (\Exception $e) {
                 // Fallback to 0 if tables are missing or queried prematurely
                 $postsData[] = 0;
