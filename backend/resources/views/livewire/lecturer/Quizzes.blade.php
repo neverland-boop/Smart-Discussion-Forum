@@ -221,6 +221,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="flex flex-col gap-1.5">
                             <textarea wire:model="questions.{{ $index }}.text" rows="2" placeholder="Enter the question statement..." class="w-full bg-zinc-50 text-sm border border-zinc-300 rounded-lg p-3 focus:ring-2 focus:ring-[#52c48a] focus:border-[#52c48a] focus:outline-none transition-all font-medium" required></textarea>
                         </div>
+                        
 
                         <!-- Options Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -6,6 +6,9 @@ use App\Http\Controllers\Api\TopicController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\QuizController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\ApiDocsController;
+
+Route::get('/', [ApiDocsController::class, 'index']); 
 
 /*
 |--------------------------------------------------------------------------
