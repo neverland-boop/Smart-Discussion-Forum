@@ -49,6 +49,22 @@ new #[Layout('components.layouts.app')] class extends Component {
         ];
     }
 
+            // Drafts Archive UI state
+        public bool $showDrafts = false;
+
+        public function toggleDrafts(): void
+        {
+            $this->showDrafts = ! $this->showDrafts;
+        }
+
+        public function getDraftQuizzesProperty()
+        {
+            return Quiz::where('status', 'DRAFT')
+                ->where('creator_id', Auth::id() ?? 1)
+                ->latest()
+                ->get();
+        }
+
     public function removeQuestion(int $index): void
     {
         if (count($this->questions) > 1) {
@@ -108,8 +124,8 @@ new #[Layout('components.layouts.app')] class extends Component {
             <p class="text-sm font-medium text-zinc-500 mt-1">Configure quiz parameters and construct standardized question matrices.</p>
         </div>
         <div class="flex gap-3">
-            <button class="bg-white border border-zinc-200 text-[#24a065] font-bold text-xs px-4 py-2 rounded-lg hover:bg-emerald-50 hover:border-emerald-200 transition-colors">
-                Drafts Archive
+            <button wire:click="toggleDrafts" type="button" class="bg-white border border-zinc-200 text-[#24a065] font-bold text-xs px-4 py-2 rounded-lg hover:bg-emerald-50 hover:border-emerald-200 transition-colors">
+                {{ $showDrafts ? 'Hide Drafts' : 'Drafts Archive' }} ({{ $this->draftQuizzes->count() }})
             </button>
         </div>
     </div>
@@ -121,6 +137,25 @@ new #[Layout('components.layouts.app')] class extends Component {
                 <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 {{ session('success') }}
             </span>
+        </div>
+    @endif
+        @if ($showDrafts)
+        <div class="bg-white border border-zinc-200 rounded-2xl shadow-sm p-6">
+            <h2 class="text-sm font-black uppercase tracking-wider text-zinc-800 mb-4">Draft Assessments</h2>
+            @forelse ($this->draftQuizzes as $draft)
+                <div class="flex items-center justify-between py-3 border-b border-zinc-100 last:border-b-0">
+                    <div>
+                        <p class="font-bold text-zinc-900 text-sm">{{ $draft->title }}</p>
+                        <p class="text-xs text-zinc-400">
+                            Created {{ $draft->created_at->diffForHumans() }}
+                            @if($draft->start_time) &middot; Scheduled for {{ \Carbon\Carbon::parse($draft->start_time)->format('M d, Y H:i') }} @endif
+                        </p>
+                    </div>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-zinc-100 text-zinc-500 border border-zinc-200">Draft</span>
+                </div>
+            @empty
+                <p class="text-sm text-zinc-400 italic">No draft assessments yet.</p>
+            @endforelse
         </div>
     @endif
 
@@ -221,7 +256,7 @@ new #[Layout('components.layouts.app')] class extends Component {
                         <div class="flex flex-col gap-1.5">
                             <textarea wire:model="questions.{{ $index }}.text" rows="2" placeholder="Enter the question statement..." class="w-full bg-zinc-50 text-sm border border-zinc-300 rounded-lg p-3 focus:ring-2 focus:ring-[#52c48a] focus:border-[#52c48a] focus:outline-none transition-all font-medium" required></textarea>
                         </div>
-                        
+
 
                         <!-- Options Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

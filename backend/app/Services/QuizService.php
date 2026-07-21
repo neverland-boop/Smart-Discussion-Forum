@@ -21,7 +21,7 @@ class QuizService
             $quiz = Quiz::create([
                 'title'       => $quizData['title'],
                 'description' => $quizData['description'],
-                'status'      => $quizData['status'] ?? 'DRAFT',
+                'status'      => !empty($quizData['start_time']) ? 'PUBLISHED' : ($quizData['status'] ?? 'DRAFT'),
                 'time_limit'  => $quizData['time_limit'],
                 'start_time'  => !empty($quizData['start_time']) ? Carbon::parse($quizData['start_time']) : null,
                 'auto_submit' => $quizData['auto_submit'] ?? true,
