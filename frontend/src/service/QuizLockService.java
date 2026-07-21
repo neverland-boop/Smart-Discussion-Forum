@@ -9,16 +9,22 @@ public class QuizLockService {
     private static int focusViolations = 0;
     private static final int MAX_VIOLATIONS = 3;
 
+    private static Runnable violationLimitAction;
+
     private QuizLockService() {
     }
 
-    public static void lockQuizWindow(Stage stage) {
+    public static void lockQuizWindow(
+            Stage stage,
+            Runnable onViolationLimitReached
+    ) {
         if (stage == null) {
             return;
         }
 
         quizLocked = true;
         focusViolations = 0;
+        violationLimitAction = onViolationLimitReached;
 
         stage.setFullScreen(true);
         stage.setFullScreenExitHint("");
@@ -42,6 +48,15 @@ public class QuizLockService {
                                 + MAX_VIOLATIONS
                 );
 
+                if (hasReachedViolationLimit()) {
+                    Platform.runLater(() -> {
+                        if (violationLimitAction != null) {
+                            violationLimitAction.run();
+                        }
+                    });
+                    return;
+                }
+
                 Platform.runLater(() -> {
                     stage.toFront();
                     stage.requestFocus();
@@ -52,6 +67,7 @@ public class QuizLockService {
 
     public static void unlockQuizWindow(Stage stage) {
         quizLocked = false;
+        violationLimitAction = null;
 
         if (stage != null) {
             stage.setAlwaysOnTop(false);
@@ -70,5 +86,9 @@ public class QuizLockService {
 
     public static boolean hasReachedViolationLimit() {
         return focusViolations >= MAX_VIOLATIONS;
+    }
+
+    public static int getMaxViolations() {
+        return MAX_VIOLATIONS;
     }
 }
