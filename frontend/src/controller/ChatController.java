@@ -15,14 +15,12 @@ public class ChatController {
     @FXML
     private TextField messageField;
 
-    private static final String CHAT_ENDPOINT =
-            "http://localhost:8000/api/messages";
-
     @FXML
     private void sendMessage() {
-        String content = messageField.getText();
 
-        if (content == null || content.isBlank()) {
+        String content = messageField.getText().trim();
+
+        if (content.isEmpty()) {
             return;
         }
 
@@ -33,8 +31,10 @@ public class ChatController {
                 null
         );
 
+        int topicId = 1;
+
         ApiClient.ApiResponse response =
-                ChatService.sendMessage(CHAT_ENDPOINT, message);
+                ChatService.sendMessage(topicId, message);
 
         if (response.isSuccess()) {
             chatArea.appendText("Me: " + content + "\n");

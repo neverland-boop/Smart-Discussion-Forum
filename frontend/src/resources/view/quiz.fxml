@@ -33,8 +33,14 @@
     </top>
 
     <center>
-        <VBox spacing="18"
-              padding="25">
+        <VBox spacing="18">
+
+            <padding>
+                <Insets top="25"
+                        right="25"
+                        bottom="25"
+                        left="25"/>
+            </padding>
 
             <Label fx:id="questionNumberLabel"
                    text="Question 1"
@@ -70,12 +76,18 @@
 
     <bottom>
         <HBox spacing="20"
-              alignment="CENTER_RIGHT"
-              padding="20">
+              alignment="CENTER_RIGHT">
+
+            <padding>
+                <Insets top="20"
+                        right="20"
+                        bottom="20"
+                        left="20"/>
+            </padding>
 
             <Button fx:id="nextButton"
-                     text="Next Question"
-                     onAction="#nextQuestion"/>
+                    text="Next Question"
+                    onAction="#nextQuestion"/>
 
             <Button text="Submit Quiz"
                     onAction="#submitQuiz"

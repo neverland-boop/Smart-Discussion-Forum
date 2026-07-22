@@ -5,7 +5,8 @@ import utils.ApiClient;
 
 public class QuizService {
 
-    private static final String BASE_URL = "http://127.0.0.1:8000/api";
+    private static final String BASE_URL =
+            "https://smart-discussion-forum-backend.onrender.com/api";
 
     private QuizService() {
     }
@@ -47,3 +48,4 @@ public class QuizService {
                 token
         );
     }
+}

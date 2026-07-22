@@ -4,6 +4,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
@@ -54,20 +55,17 @@ public class QuizController {
     private Timeline timer;
 
     /*
-     * The backend will provide this during group integration.
+     * This must eventually come from Duncan's backend.
      */
-    private int attemptId;
+    private int attemptId = 0;
 
     private int currentQuestionIndex = 0;
     private int remainingSeconds = 10 * 60;
 
     private boolean submitted = false;
     private boolean submissionInProgress = false;
+    private boolean quizStarted = false;
 
-    /*
-     * Temporary questions for testing the completed frontend.
-     * These will later be replaced by questions received from Laravel.
-     */
     private final String[] questionTexts = {
             "Which language is mainly used to build JavaFX applications?",
             "Which file type is commonly used to design a JavaFX interface?",
@@ -85,14 +83,6 @@ public class QuizController {
             }
     };
 
-    /*
-     * Stores answers using:
-     * question number -> selected option
-     *
-     * Example:
-     * 1 -> A
-     * 2 -> C
-     */
     private final Map<Integer, String> selectedAnswers =
             new LinkedHashMap<>();
 
@@ -102,6 +92,22 @@ public class QuizController {
         displayCurrentQuestion();
         updateTimerLabel();
         updateViolationLabel();
+
+        /*
+         * Wait until the FXML has been placed inside a window,
+         * then obtain the Stage and start the quiz automatically.
+         */
+        Platform.runLater(() -> {
+            if (timerLabel.getScene() == null) {
+                showMessage("The quiz window could not be detected.");
+                return;
+            }
+
+            quizStage =
+                    (Stage) timerLabel.getScene().getWindow();
+
+            startQuiz(quizStage);
+        });
     }
 
     private void configureAnswerOptions() {
@@ -111,15 +117,17 @@ public class QuizController {
         optionD.setUserData("D");
     }
 
-    /*
-     * Called by the screen that opens the quiz.
-     */
     public void startQuiz(Stage stage) {
-        if (stage == null) {
-            System.out.println("Quiz stage was not provided.");
+        if (quizStarted) {
             return;
         }
 
+        if (stage == null) {
+            showMessage("The quiz window was not provided.");
+            return;
+        }
+
+        quizStarted = true;
         quizStage = stage;
 
         QuizLockService.lockQuizWindow(
@@ -134,10 +142,6 @@ public class QuizController {
         System.out.println("Quiz lock activated.");
     }
 
-    /*
-     * The real attempt ID will be passed here when the backend
-     * and frontend are connected during group testing.
-     */
     public void setAttemptId(int attemptId) {
         if (attemptId <= 0) {
             System.out.println("Invalid quiz attempt ID.");
@@ -158,17 +162,21 @@ public class QuizController {
 
         timer = new Timeline(
                 new KeyFrame(Duration.seconds(1), event -> {
+
                     if (submitted || submissionInProgress) {
                         return;
                     }
 
                     remainingSeconds--;
 
+                    if (remainingSeconds < 0) {
+                        remainingSeconds = 0;
+                    }
+
                     updateTimerLabel();
                     updateViolationLabel();
 
-                    if (remainingSeconds <= 0) {
-                        remainingSeconds = 0;
+                    if (remainingSeconds == 0) {
                         timer.stop();
                         autoSubmitForTime();
                     }
@@ -176,14 +184,10 @@ public class QuizController {
         );
 
         timer.setCycleCount(Timeline.INDEFINITE);
-        timer.play();
+        timer.playFromStart();
     }
 
     private void updateTimerLabel() {
-        if (timerLabel == null) {
-            return;
-        }
-
         int minutes = remainingSeconds / 60;
         int seconds = remainingSeconds % 60;
 
@@ -259,26 +263,22 @@ public class QuizController {
                 answerGroup.getSelectedToggle();
 
         if (selectedToggle == null) {
-            System.out.println(
+            showMessage(
                     "Please select an answer before continuing."
             );
             return false;
         }
 
         int questionNumber = currentQuestionIndex + 1;
+
         String selectedOption =
-                String.valueOf(selectedToggle.getUserData());
+                String.valueOf(
+                        selectedToggle.getUserData()
+                );
 
         selectedAnswers.put(
                 questionNumber,
                 selectedOption
-        );
-
-        System.out.println(
-                "Saved answer for question "
-                        + questionNumber
-                        + ": "
-                        + selectedOption
         );
 
         return true;
@@ -301,9 +301,6 @@ public class QuizController {
             displayCurrentQuestion();
 
         } else {
-            System.out.println(
-                    "All questions have been answered."
-            );
             submitQuiz();
         }
     }
@@ -314,10 +311,6 @@ public class QuizController {
             return;
         }
 
-        /*
-         * Save the current selection when one exists.
-         * A user may press Submit directly instead of Next.
-         */
         if (answerGroup.getSelectedToggle() != null) {
             saveCurrentAnswer();
         }
@@ -325,7 +318,7 @@ public class QuizController {
         if (selectedAnswers.size()
                 < questionTexts.length) {
 
-            System.out.println(
+            showMessage(
                     "Please answer every question before submitting."
             );
             return;
@@ -340,14 +333,11 @@ public class QuizController {
     private void autoSubmitForViolations() {
         submitQuizToServer(
                 true,
-                "Quiz automatically submitted because the focus-violation limit was reached."
+                "Quiz automatically submitted because the violation limit was reached."
         );
     }
 
     private void autoSubmitForTime() {
-        /*
-         * Preserve the answer currently selected when time expires.
-         */
         if (answerGroup.getSelectedToggle() != null) {
             saveCurrentAnswer();
         }
@@ -366,22 +356,23 @@ public class QuizController {
             return;
         }
 
-        if (attemptId <= 0) {
-            String preparedJson = buildAnswersJson();
+        String answersJson = buildAnswersJson();
 
+        /*
+         * The quiz can run locally, but real server submission
+         * needs an attempt ID supplied by the backend.
+         */
+        if (attemptId <= 0) {
             System.out.println(submissionMessage);
             System.out.println(
-                    "Answers prepared successfully: "
-                            + preparedJson
-            );
-            System.out.println(
-                    "Backend submission is waiting for the real attempt ID during group integration."
+                    "Prepared answers: " + answersJson
             );
 
-            /*
-             * The frontend work is complete, but do not send to an
-             * invented backend attempt.
-             */
+            showMessage(
+                    "Your answers were prepared successfully, "
+                            + "but they cannot yet be sent because "
+                            + "the backend did not provide a quiz attempt ID."
+            );
             return;
         }
 
@@ -392,11 +383,6 @@ public class QuizController {
         }
 
         setControlsDisabled(true);
-
-        String answersJson = buildAnswersJson();
-
-        System.out.println("Submitting quiz...");
-        System.out.println("Answers: " + answersJson);
 
         Thread submissionThread = new Thread(() -> {
 
@@ -465,7 +451,8 @@ public class QuizController {
         if (response.isSuccess()) {
             submitted = true;
 
-            System.out.println(submissionMessage);
+            showMessage(submissionMessage);
+
             System.out.println(
                     "Server response: " + response.body
             );
@@ -474,30 +461,24 @@ public class QuizController {
             return;
         }
 
-        /*
-         * SyncService queues POST requests when the server
-         * cannot be reached.
-         */
         if (response.statusCode == -1) {
             submitted = true;
 
-            System.out.println(
-                    "The server is unavailable."
+            showMessage(
+                    "The server is unavailable. "
+                            + "Your submission was placed in the offline queue."
             );
-            System.out.println(
-                    "The quiz submission was placed in the offline queue."
-            );
-            System.out.println(response.body);
 
             finishQuiz();
             return;
         }
 
-        System.out.println(
-                "Quiz submission failed. Status: "
+        showMessage(
+                "Quiz submission failed. HTTP "
                         + response.statusCode
+                        + "\n"
+                        + response.body
         );
-        System.out.println(response.body);
 
         setControlsDisabled(false);
 
@@ -515,10 +496,6 @@ public class QuizController {
     }
 
     private void updateViolationLabel() {
-        if (violationLabel == null) {
-            return;
-        }
-
         violationLabel.setText(
                 "Violations: "
                         + QuizLockService.getFocusViolations()
@@ -532,11 +509,9 @@ public class QuizController {
             timer.stop();
         }
 
-        if (quizStage == null) {
-            return;
+        if (quizStage != null) {
+            QuizLockService.unlockQuizWindow(quizStage);
         }
-
-        QuizLockService.unlockQuizWindow(quizStage);
 
         System.out.println(
                 "Quiz finished with "
@@ -547,5 +522,14 @@ public class QuizController {
 
     public boolean isQuizLocked() {
         return QuizLockService.isQuizLocked();
+    }
+
+    private void showMessage(String message) {
+        Alert alert =
+                new Alert(Alert.AlertType.INFORMATION);
+
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

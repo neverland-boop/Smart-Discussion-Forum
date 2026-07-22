@@ -1,5 +1,6 @@
 package service;
 
+import config.ApiConfig;
 import model.Message;
 import storage.TokenStorage;
 import utils.ApiClient;
@@ -10,13 +11,20 @@ public class ChatService {
     }
 
     public static ApiClient.ApiResponse sendMessage(
-            String endpoint,
+            int topicId,
             Message message
     ) {
         String payload = createMessageJson(message);
         String token = TokenStorage.getToken();
 
-        return SyncService.sendPost(endpoint, payload, token);
+        String endpoint =
+                ApiConfig.BASE_URL + "/topics/" + topicId + "/posts";
+
+        return SyncService.sendPost(
+                endpoint,
+                payload,
+                token
+        );
     }
 
     private static String createMessageJson(Message message) {
@@ -34,6 +42,8 @@ public class ChatService {
 
         return value
                 .replace("\\", "\\\\")
-                .replace("\"", "\\\"");
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r");
     }
 }

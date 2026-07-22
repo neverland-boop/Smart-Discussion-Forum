@@ -1,5 +1,6 @@
 package controller;
 
+import dto.LoginResponse;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -11,25 +12,19 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-
-import dto.LoginResponse;
 import service.AuthService;
 import storage.TokenStorage;
 
-/**
- * FXML controller for login.fxml.
- *
- * Sprint 1 (Patience & Anthony — "Build Java Login/Registration screens
- * and local token storage"): this screen no longer checks a hardcoded
- * email/password pair. It calls AuthService.login(), which hits Duncan's
- * Sanctum-backed /api/login endpoint, and persists the REAL token Sanctum
- * returns via TokenStorage — never a token generated on the client.
- */
 public class LoginController {
 
-    @FXML private TextField emailField;
-    @FXML private PasswordField passwordField;
-    @FXML private CheckBox rememberMe;
+    @FXML
+    private TextField emailField;
+
+    @FXML
+    private PasswordField passwordField;
+
+    @FXML
+    private CheckBox rememberMe;
 
     private int failedAttempts = 0;
 
@@ -39,7 +34,10 @@ public class LoginController {
         String email = TokenStorage.getLoggedInEmail();
 
         if (token != null && email != null) {
-            showMessage("Welcome back, " + email + "!\nYou were remembered.");
+            showMessage(
+                    "Welcome back, " + email
+                            + "!\nYou were remembered."
+            );
         }
     }
 
@@ -47,7 +45,9 @@ public class LoginController {
     private void handleLoginAction(ActionEvent event) {
 
         if (failedAttempts >= 3) {
-            showMessage("Too many failed attempts! Please try again later.");
+            showMessage(
+                    "Too many failed attempts! Please try again later."
+            );
             return;
         }
 
@@ -69,41 +69,97 @@ public class LoginController {
             return;
         }
 
-        LoginResponse result = AuthService.login(email, password);
+        LoginResponse result =
+                AuthService.login(email, password);
 
         if (!result.success) {
             failedAttempts++;
-            showMessage((result.message != null ? result.message : "Wrong credentials.")
-                    + "\nAttempts: " + failedAttempts + "/3");
+
+            showMessage(
+                    (result.message != null
+                            ? result.message
+                            : "Wrong credentials.")
+                            + "\nAttempts: "
+                            + failedAttempts
+                            + "/3"
+            );
             return;
         }
 
         failedAttempts = 0;
 
-        if (rememberMe.isSelected() && result.token != null) {
-            TokenStorage.saveToken(result.token);
-            TokenStorage.saveLoggedInEmail(email);
+        if (result.token == null || result.token.isBlank()) {
+            showMessage(
+                    "Login succeeded, but the server did not return a token."
+            );
+            return;
         }
 
+        TokenStorage.saveToken(result.token);
+        TokenStorage.saveLoggedInEmail(email);
+
         showMessage("Login Successful!");
-        // TODO (later sprint): navigate to the real dashboard once it exists.
+
+        try {
+            Stage currentStage =
+                    (Stage) ((Node) event.getSource())
+                            .getScene()
+                            .getWindow();
+
+            FXMLLoader loader =
+                    new FXMLLoader(
+                            getClass().getResource(
+                                    "/resources/view/quiz.fxml"
+                            )
+                    );
+
+            Parent root = loader.load();
+
+            currentStage.setScene(
+                    new Scene(root, 1000, 700)
+            );
+
+            currentStage.show();
+
+        } catch (Exception exception) {
+            exception.printStackTrace();
+
+            showMessage(
+                    "Login worked, but the quiz screen could not open."
+            );
+        }
     }
 
     @FXML
     private void handleGoToRegister(ActionEvent event) {
         try {
-            Stage currentStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/resources/view/registration.fxml"));
+            Stage currentStage =
+                    (Stage) ((Node) event.getSource())
+                            .getScene()
+                            .getWindow();
+
+            FXMLLoader loader =
+                    new FXMLLoader(
+                            getClass().getResource(
+                                    "/resources/view/registration.fxml"
+                            )
+                    );
+
             Parent root = loader.load();
+
             currentStage.setScene(new Scene(root));
             currentStage.show();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            showMessage("Could not open the registration screen.");
         }
     }
 
     private void showMessage(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        Alert alert =
+                new Alert(Alert.AlertType.INFORMATION);
+
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();

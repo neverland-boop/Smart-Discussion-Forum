@@ -3,21 +3,16 @@ package config;
 /**
  * Central configuration for reaching the Laravel backend.
  *
- * IMPORTANT — Sanctum, not raw JWT: the backend issues Sanctum "personal
- * access tokens" (opaque strings from $user->createToken()->plainTextToken),
- * not JWTs. The desktop client never decodes the token — it just stores
- * whatever string comes back and replays it as:
+ * IMPORTANT — Sanctum, not raw JWT: the backend issues Sanctum personal
+ * access tokens. The desktop client stores the token and sends it as:
  *
- *     Authorization: Bearer <token>
- *
- * on every subsequent authenticated request. The web client (Livewire /
- * Breeze) instead relies on session cookies + CSRF, which is Francis's
- * concern and unaffected by anything here.
+ * Authorization: Bearer <token>
  */
 public class ApiConfig {
 
-    /** Update to match wherever `php artisan serve` (or production) is running. */
-    public static final String BASE_URL = "http://localhost:8000/api";
+    /** Production backend (Duncan's Render server). */
+    public static final String BASE_URL =
+            "https://smart-discussion-forum-backend.onrender.com/api";
 
     public static final String REGISTER_ENDPOINT = BASE_URL + "/register";
     public static final String LOGIN_ENDPOINT = BASE_URL + "/login";
