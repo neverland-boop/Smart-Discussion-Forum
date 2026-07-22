@@ -17,9 +17,9 @@ import utils.ApiClient;
  */
 public class AuthService {
 
-    public static LoginResponse register(String name, String email, String password, String passwordConfirmation)
+    public static LoginResponse register(String name, String email, String password, String passwordConfirmation, boolean agreedToRules)
     {
-        RegisterRequest request = new RegisterRequest(name, email, password, passwordConfirmation);
+        RegisterRequest request = new RegisterRequest(name, email, password, passwordConfirmation, agreedToRules);
         ApiClient.ApiResponse response = ApiClient.post(ApiConfig.REGISTER_ENDPOINT, request.toJson(), null);
         return LoginResponse.fromJson(response.statusCode, response.body);
     }

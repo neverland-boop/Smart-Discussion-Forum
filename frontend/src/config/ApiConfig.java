@@ -18,6 +18,7 @@ public class ApiConfig {
     public static final String LOGIN_ENDPOINT = BASE_URL + "/login";
     public static final String LOGOUT_ENDPOINT = BASE_URL + "/logout";
 
+
     private ApiConfig() {
         // Utility class — no instances.
     }
