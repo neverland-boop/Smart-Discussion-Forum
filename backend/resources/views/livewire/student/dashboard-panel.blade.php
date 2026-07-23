@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Group;
 use App\Models\Quiz;
 use App\Models\Post;
+use Carbon\Carbon;
 
 new class extends Component {
     // Stat Cards
@@ -18,12 +19,15 @@ new class extends Component {
     public $upcomingQuizzes = [];
     public $recentActivities = [];
 
+    // Auto-Redirect Variables
+    public $msUntilQuiz = 0;
+    public $nextQuizId = null;
+
     public function mount()
     {
         $user = Auth::user();
 
-        // 1. Fetch My Groups (Using your current schema where user_id is in the groups table)
-        // If you create a pivot table later, change this to: $user->groups()->latest()->take(4)->get();
+        // 1. Fetch My Groups
         $this->myGroups = Group::where('user_id', $user->id)->latest()->take(4)->get();
         $this->activeGroupsCount = $this->myGroups->count();
 
@@ -44,9 +48,18 @@ new class extends Component {
                 ->orderBy('start_time', 'asc')
                 ->take(3)
                 ->get();
+
+            // === QUIZ REDIRECT LOGIC ===
+            // Find the most immediate upcoming quiz that has a scheduled start time
+            $nextQuiz = $this->upcomingQuizzes->firstWhere('start_time', '!=', null);
+            if ($nextQuiz) {
+                $this->nextQuizId = $nextQuiz->id;
+                // diffInMilliseconds calculates the exact time left. (false allows negative numbers if it already started)
+                $this->msUntilQuiz = now()->diffInMilliseconds(Carbon::parse($nextQuiz->start_time), false);
+            }
         }
 
-        // 3. Average Score (Calculated directly from your 'marks' table)
+        // 3. Average Score
         $average = DB::table('marks')
             ->where('user_id', $user->id)
             ->avg('score');
@@ -55,7 +68,7 @@ new class extends Component {
 
         // 4. Fetch Unread Messages
         $this->unreadMsgsCount = Post::where('created_at', '>=', now()->subDays(7))
-            ->where('user_id', '!=', $user->id) // Don't count their own posts
+            ->where('user_id', '!=', $user->id) 
             ->count();
 
         // 5. Recent Activity Placeholder
@@ -190,5 +203,30 @@ new class extends Component {
             @endforelse
         </div>
     </div>
-        <livewire:student.join-group-modal />
+    
+    <livewire:student.join-group-modal />
+
+    <!-- === AUTO REDIRECT LOGIC === -->
+    @if($nextQuizId)
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const msUntilQuiz = @json($msUntilQuiz);
+                
+                // Set the URL of your actual quiz taking route.
+                // Update this if your route name is different!
+                const quizUrl = "/student/quizzes/{{ $nextQuizId }}";
+
+                // If the quiz starts in the future (within 24 hours), wait and then redirect
+                if (msUntilQuiz > 0 && msUntilQuiz < 86400000) {
+                    setTimeout(() => {
+                        window.location.href = quizUrl;
+                    }, msUntilQuiz);
+                } 
+                // If the user loads the dashboard *after* the quiz has already started (within the last hour)
+                else if (msUntilQuiz <= 0 && msUntilQuiz > -3600000) {
+                    window.location.href = quizUrl;
+                }
+            });
+        </script>
+    @endif
 </div>

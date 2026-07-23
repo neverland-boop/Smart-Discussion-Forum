@@ -61,6 +61,7 @@ if ($this->quiz->start_time && now()->isBefore($this->quiz->start_time)) {
         }
 
         $this->timeRemaining = $deadline->greaterThan(now()) ? now()->diffInSeconds($deadline) : 0;
+        
         // Pre-fill tracking arrays
         foreach ($this->questions as $q) {
             $this->answers[$q->id] = null;

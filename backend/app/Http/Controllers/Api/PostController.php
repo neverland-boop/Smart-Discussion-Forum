@@ -38,9 +38,7 @@ class PostController extends Controller
         if (auth()->user()->warning_count > 0) {
             auth()->user()->pardon();
         }
-        // --- NEW LOGIC: Inactivity Auto-Pardon ---
-        // If a student had warnings for inactivity but finally posted,
-        // automatically reset their warnings back to zero.
+        
         if (auth()->user()->warning_count > 0) {
             auth()->user()->pardon();
         }

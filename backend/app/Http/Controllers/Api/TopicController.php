@@ -76,8 +76,4 @@ class TopicController extends Controller
         return response()->json(['success' => true, 'message' => 'Message sent.']);
     }
 
-    /**
-     * Handles the PDF / Transcript export feature for discussion threads 
-     * matching the requirement: "memebers can easily choose to see details... export to PDF"[cite: 1, 2].
-     */
 }

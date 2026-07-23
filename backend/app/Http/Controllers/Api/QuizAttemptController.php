@@ -16,10 +16,6 @@ class QuizAttemptController extends Controller
         $this->quizService = $quizService;
     }
 
-    /**
-     * POST /api/attempts/{attemptId}/submit
-     * Handles assessment submission, scoring, and server-side time limit enforcement.
-     */
     public function submit(Request $request, $attemptId)
     {
         // 1. Validate incoming payload
@@ -32,18 +28,11 @@ class QuizAttemptController extends Controller
         $attempt = QuizAttempt::with('quiz')->findOrFail($attemptId);
         $quiz = $attempt->quiz;
         
-    // 3. SERVER-SIDE CHEAT PROTECTION
-            // Calculate the absolute latest time this attempt should be accepted, capped by
-            // the quiz's global closing time (start_time + time_limit) if one is scheduled —
-            // otherwise a late joiner's individual deadline could outlast the global window.
             $quizEndTime = $attempt->start_time->copy()->addMinutes($quiz->time_limit);
             if ($quiz->start_time) {
                 $globalEndTime = $quiz->start_time->copy()->addMinutes($quiz->time_limit);
                 $quizEndTime = $quizEndTime->greaterThan($globalEndTime) ? $globalEndTime : $quizEndTime;
             }
-            
-            // If the server receives this payload AFTER the deadline, force the auto_submitted flag.
-            // We add a 30-second grace period to account for network latency from the Java client.
             $isLate = now()->greaterThan($quizEndTime->copy()->addSeconds(30));
             $autoSubmitted = $isLate ? true : ($validated['auto_submitted'] ?? false);
 

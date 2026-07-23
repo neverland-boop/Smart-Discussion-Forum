@@ -42,11 +42,11 @@ class AuthController extends Controller
         // Check if the student has an active suspension in the blacklists table
         $isBlacklisted = \App\Models\Blacklist::where('user_id', $user->id)
             ->where('status', 'SUSPENDED')
-            ->where('expiry_date', '>', now()) // Ensure the ban hasn't expired
+            ->where('expiry_date', '>', now())
             ->exists();
 
         if ($isBlacklisted) {
-            Auth::logout(); // Log them out immediately
+            Auth::logout(); 
             return response()->json([
                 'error' => 'Account is suspended due to inactivity.',
                 'status' => 'BLACKLISTED'
