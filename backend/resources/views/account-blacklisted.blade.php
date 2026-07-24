@@ -22,7 +22,7 @@
             </p>
         </div>
 
-        <a href="{{ route('login') }}" class="inline-block w-full bg-brand-primary hover:bg-brand-primary-hover text-white font-medium py-2.5 px-4 rounded-lg transition-colors">
+        <a href="{{ route('login') }}" class="inline-block w-full bg-green-700 hover:bg-green-600 text-white font-medium py-2.5 px-4 rounded-lg transition-colors">
             Return to Login
         </a>
         

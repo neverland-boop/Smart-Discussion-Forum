@@ -4,10 +4,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
-use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new #[Layout('layouts.app')] class extends Component {
+new class extends Component {
     public string $current_password = '';
     public string $password = '';
     public string $password_confirmation = '';
@@ -73,7 +72,7 @@ new #[Layout('layouts.app')] class extends Component {
 
             <div class="flex items-center gap-4">
                 <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full bg-brand-primary hover:bg-brand-primary-hover text-white">{{ __('Save') }}</flux:button>
+                    <flux:button variant="primary" type="submit" class="w-full">{{ __('Save') }}</flux:button>
                 </div>
 
                 <x-action-message class="me-3" on="password-updated">

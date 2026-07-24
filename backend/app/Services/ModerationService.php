@@ -1,7 +1,6 @@
 <?php
 namespace App\Services;
 
-use App\Models\Blacklist;
 use App\Models\Topic;
 use App\Models\User;
 
@@ -30,29 +29,6 @@ class ModerationService
             return ['success' => true, 'data' => $blacklist];
         }
         return ['success' => false, 'message' => 'Unauthorized'];
-    }
-
-    public function applyBanFromBlacklist(int $blacklistId): bool
-    {
-        $blacklist = Blacklist::find($blacklistId);
-
-        if (! $blacklist) {
-            return false;
-        }
-
-        $blacklist->update([
-            'status' => 'SUSPENDED',
-        ]);
-
-        $user = $blacklist->user;
-        if ($user) {
-            $user->update([
-                'status' => 'SUSPENDED',
-                'warning_count' => max((int) $user->warning_count, 3),
-            ]);
-        }
-
-        return true;
     }
 
     public function clearWarningsIfCompliant(User $user)

@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
-new #[Layout('layouts.app')] class extends Component {
+new #[Layout('components.layouts.app')] class extends Component {
     use WithPagination;
 
     public $groups = [];
@@ -104,7 +104,7 @@ new #[Layout('layouts.app')] class extends Component {
     public function removeStudent($userId)
     {
         if ($this->selectedGroupId) {
-            DB::table('group_members')
+            DB::table('group_user')
                 ->where('group_id', $this->selectedGroupId)
                 ->where('user_id', $userId)
                 ->delete();
@@ -114,7 +114,7 @@ new #[Layout('layouts.app')] class extends Component {
     }
 }; ?>
 
-<div class="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6 min-h-screen text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
     
     <!-- Flash Notifications -->
     @if (session()->has('success'))

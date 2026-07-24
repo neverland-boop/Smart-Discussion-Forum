@@ -3,11 +3,10 @@ use Livewire\Volt\Component;
 use Livewire\Attributes\Layout;
 use App\Models\Group;
 use App\Models\Topic;
-use App\Services\ModerationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
-new #[Layout('layouts.app')] class extends Component {
+new #[Layout('components.layouts.app')] class extends Component {
     public $activeTopics = [];
     public $pendingFlags = [];
     public $groupList = [];
@@ -150,15 +149,14 @@ new #[Layout('layouts.app')] class extends Component {
         $this->loadFlags();
     }
 
-    public function applyBan(ModerationService $moderationService, $flagId): void
+    public function applyBan($flagId): void
     {
-        if ($moderationService->applyBanFromBlacklist((int) $flagId)) {
-            $this->loadFlags();
-        }
+        DB::table('blacklists')->where('id', $flagId)->update(['status' => 'SUSPENDED']);
+        $this->loadFlags();
     }
 }; ?>
 
-<div x-data="{ showCreateModal: false }" @channel-created.window="showCreateModal = false" class="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6 min-h-screen text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
+<div x-data="{ showCreateModal: false }" @channel-created.window="showCreateModal = false" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 bg-white dark:bg-zinc-950 min-h-screen text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
     
     <!-- Top Toolbar with Brand Emerald Accents -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-sm border-t-4 border-t-[#24a065]">
