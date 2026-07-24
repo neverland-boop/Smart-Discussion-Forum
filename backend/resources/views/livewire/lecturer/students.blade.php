@@ -104,7 +104,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     public function removeStudent($userId)
     {
         if ($this->selectedGroupId) {
-            DB::table('group_user')
+            DB::table('group_members')
                 ->where('group_id', $this->selectedGroupId)
                 ->where('user_id', $userId)
                 ->delete();
