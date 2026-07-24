@@ -187,7 +187,7 @@ new class extends Component {
         
         @if($groups->isNotEmpty())
             <!-- Live wire binding triggers updatedSelectedGroupId() instantly -->
-            <select wire:model.live="selectedGroupId" class="w-full sm:w-64 bg-white border border-gray-300 text-gray-700 rounded-xl px-4 py-2.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-shadow cursor-pointer">
+            <select wire:model.live="selectedGroupId" class="w-full sm:w-64 bg-white border border-gray-300 text-gray-700 rounded-xl px-4 py-2.5 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-shadow cursor-pointer">
                 @foreach($groups as $group)
                     <option value="{{ $group->id }}">{{ $group->name ?? $group->groupName }}</option>
                 @endforeach
@@ -202,7 +202,7 @@ new class extends Component {
         <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Posts</p>
             <p class="text-3xl font-bold text-gray-900 mt-3">{{ number_format($totalPosts) }}</p>
-            <p class="text-xs font-medium text-green-600 mt-2 bg-green-50 inline-block px-2 py-1 rounded-md">Group lifetime total</p>
+            <p class="text-xs font-medium text-brand-primary mt-2 bg-brand-primary-soft inline-block px-2 py-1 rounded-md">Group lifetime total</p>
         </div>
         
         <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -222,7 +222,7 @@ new class extends Component {
         
         <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200">
             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Top Contributor</p>
-            <p class="text-2xl font-bold text-green-600 mt-3 truncate" title="{{ $topContributor }}">{{ $topContributor }}</p>
+            <p class="text-2xl font-bold text-brand-primary mt-3 truncate" title="{{ $topContributor }}">{{ $topContributor }}</p>
             <p class="text-xs text-gray-500 mt-2">Highest post volume</p>
         </div>
     </div>

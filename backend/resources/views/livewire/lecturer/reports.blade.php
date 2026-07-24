@@ -5,7 +5,7 @@ use App\Models\Group;
 use App\Models\Mark;
 use Illuminate\Support\Facades\DB;
 
-new #[Layout('components.layouts.app')] class extends Component {
+new #[Layout('layouts.app')] class extends Component {
     public $groupList = [];
     public ?int $selectedGroupId = null;
 
@@ -109,7 +109,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 bg-white dark:bg-zinc-950 min-h-screen text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6 min-h-screen text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
     
     <!-- Top Header & Group Selector Context Toolbar -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-sm border-t-4 border-t-[#24a065]">

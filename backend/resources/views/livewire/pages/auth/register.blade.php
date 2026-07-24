@@ -14,7 +14,7 @@ new #[Layout('components.layouts.auth.simple')] class extends Component {
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
-    public bool $agree_to_rules = false; 
+    public bool $agree_to_rules = true; 
 
     /**
      * Handle an incoming registration request.
@@ -47,7 +47,7 @@ new #[Layout('components.layouts.auth.simple')] class extends Component {
 <div x-data="{ showRules: false }" class="w-full max-w-md mx-auto my-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-xl rounded-2xl overflow-hidden font-sans">
 
     <!-- 1. Brand Bar (green, matches the login screen's accent) -->
-    <div class="w-full bg-[#2F7A54] text-white px-5 py-3 text-xs font-semibold tracking-wide select-none flex items-center gap-2">
+    <div class="w-full bg-brand-primary text-white px-5 py-3 text-xs font-semibold tracking-wide select-none flex items-center gap-2">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 4L3 8L12 12L21 8L12 4Z" stroke="white" stroke-width="1.7" stroke-linejoin="round"/>
             <path d="M6 10.5V16C6 16 8.5 18 12 18C15.5 18 18 16 18 16V10.5" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -57,7 +57,7 @@ new #[Layout('components.layouts.auth.simple')] class extends Component {
 
     <!-- 2. Icon Badge + Heading -->
     <div class="w-full bg-zinc-50 dark:bg-zinc-950 pt-8 pb-6 px-6 border-b border-zinc-200 dark:border-zinc-800 flex flex-col items-center text-center">
-        <div class="w-14 h-14 rounded-2xl bg-[#5CC98B] flex items-center justify-center mb-4 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-brand-primary-soft flex items-center justify-center mb-4 shadow-sm">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M4 5.5C4 4.67 4.67 4 5.5 4H11V20H5.5C4.67 20 4 19.33 4 18.5V5.5Z" stroke="#1e1e1e" stroke-width="1.6" stroke-linejoin="round"/>
                 <path d="M20 5.5C20 4.67 19.33 4 18.5 4H13V20H18.5C19.33 20 20 19.33 20 18.5V5.5Z" stroke="#1e1e1e" stroke-width="1.6" stroke-linejoin="round"/>
@@ -88,28 +88,28 @@ new #[Layout('components.layouts.auth.simple')] class extends Component {
             <div class="flex flex-col gap-1">
                 <label for="name" class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Full Name</label>
                 <flux:input wire:model="name" id="name" type="text" name="name" required autofocus autocomplete="name"
-                    class="!py-1 !rounded-lg focus:!border-[#2F7A54] focus:!ring-[#2F7A54]" />
+                    class="!py-1 !rounded-lg focus:!border-brand-primary focus:!ring-brand-primary" />
             </div>
 
             <!-- Email Address -->
             <div class="flex flex-col gap-1">
                 <label for="email" class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Email Address</label>
                 <flux:input wire:model="email" id="email" type="email" name="email" required autocomplete="email"
-                    class="!py-1 !rounded-lg focus:!border-[#2F7A54] focus:!ring-[#2F7A54]" />
+                    class="!py-1 !rounded-lg focus:!border-brand-primary focus:!ring-brand-primary" />
             </div>
 
             <!-- Password -->
             <div class="flex flex-col gap-1">
                 <label for="password" class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Password</label>
                 <flux:input wire:model="password" id="password" type="password" name="password" required autocomplete="new-password" viewable
-                    class="!rounded-lg focus:!border-[#2F7A54] focus:!ring-[#2F7A54]" />
+                    class="!rounded-lg focus:!border-brand-primary focus:!ring-brand-primary" />
             </div>
 
             <!-- Confirm Password -->
             <div class="flex flex-col gap-1">
                 <label for="password_confirmation" class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Confirm Password</label>
                 <flux:input wire:model="password_confirmation" id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                    class="!py-1 !rounded-lg focus:!border-[#2F7A54] focus:!ring-[#2F7A54]" />
+                    class="!py-1 !rounded-lg focus:!border-brand-primary focus:!ring-brand-primary" />
             </div>
 
             <!-- Checkbox + Rules Link -->
@@ -119,14 +119,14 @@ new #[Layout('components.layouts.auth.simple')] class extends Component {
                     id="agree_to_rules" 
                     type="checkbox" 
                     name="agree_to_rules"
-                    class="w-4 h-4 mt-0.5 shrink-0 rounded-md text-[#2F7A54] border-zinc-300 focus:ring-2 focus:ring-[#5CC98B] focus:ring-offset-1 dark:bg-zinc-900 dark:border-zinc-700"
+                    class="w-4 h-4 mt-0.5 shrink-0 rounded-md text-brand-primary border-zinc-300 focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 dark:bg-zinc-900 dark:border-zinc-700"
                     required
                 />
                 <label for="agree_to_rules" class="text-xs font-medium text-zinc-700 dark:text-zinc-300 select-none cursor-pointer leading-relaxed">
                     I agree to the
                     <button type="button"
                        @click.stop.prevent="showRules = true"
-                       class="underline decoration-2 underline-offset-2 decoration-[#2F7A54]/40 hover:decoration-[#2F7A54] text-[#2F7A54] dark:text-[#5CC98B] font-semibold transition">
+                       class="underline decoration-2 underline-offset-2 decoration-brand-primary/40 hover:decoration-brand-primary text-brand-primary dark:text-brand-primary font-semibold transition">
                         platform rules
                     </button>
                     and terms
@@ -135,7 +135,7 @@ new #[Layout('components.layouts.auth.simple')] class extends Component {
 
             <!-- Registration Button (green, matches login) -->
             <button type="submit"
-                class="w-full inline-flex items-center justify-center gap-2 bg-[#2F7A54] hover:bg-[#256242] active:bg-[#1e4f36] text-white py-3 text-sm font-semibold tracking-wide rounded-xl shadow-sm hover:shadow-md transition-all block border-none text-center cursor-pointer mt-1 focus:outline-none focus:ring-2 focus:ring-[#5CC98B] focus:ring-offset-2 dark:focus:ring-offset-zinc-900">
+                class="w-full inline-flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary-hover active:bg-brand-dark text-white py-3 text-sm font-semibold tracking-wide rounded-xl shadow-sm hover:shadow-md transition-all block border-none text-center cursor-pointer mt-1 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 dark:focus:ring-offset-zinc-900">
                 Register
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 12H19" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
@@ -147,7 +147,7 @@ new #[Layout('components.layouts.auth.simple')] class extends Component {
         <!-- Login Redirect Link -->
         <div class="mt-6 text-xs text-center text-zinc-500 dark:text-zinc-400">
             Already have an account? 
-            <x-text-link href="{{ route('login') }}" class="text-[#2F7A54] hover:text-[#256242] dark:text-[#5CC98B] hover:underline ml-0.5 font-semibold !text-[#2F7A54] dark:!text-[#5CC98B]">
+            <x-text-link href="{{ route('login') }}" class="text-brand-primary hover:text-brand-primary-hover dark:text-brand-primary hover:underline ml-0.5 font-semibold !text-brand-primary dark:!text-brand-primary">
                 Login here
             </x-text-link>
         </div>
@@ -193,25 +193,25 @@ new #[Layout('components.layouts.auth.simple')] class extends Component {
 
             <ul class="space-y-3 text-sm text-zinc-700 dark:text-zinc-200 leading-relaxed">
                 <li class="flex gap-2">
-                    <span class="text-[#2F7A54] font-bold">•</span>
+                    <span class="text-brand-primary font-bold">•</span>
                     Be respectful to all members
                 </li>
                 <li class="flex gap-2">
-                    <span class="text-[#2F7A54] font-bold">•</span>
+                    <span class="text-brand-primary font-bold">•</span>
                     No spam or irrelevant content
                 </li>
                 <li class="flex gap-2">
-                    <span class="text-[#2F7A54] font-bold">•</span>
+                    <span class="text-brand-primary font-bold">•</span>
                     Use the platform for academic discussions
                 </li>
                 <li class="flex gap-2">
-                    <span class="text-[#2F7A54] font-bold">•</span>
+                    <span class="text-brand-primary font-bold">•</span>
                     Violation may lead to warnings or bans
                 </li>
             </ul>
 
             <button type="button" @click="showRules = false"
-                    class="w-full mt-6 border border-[#2F7A54] text-[#2F7A54] dark:text-[#5CC98B] dark:border-[#5CC98B] hover:bg-[#2F7A54] hover:text-white dark:hover:bg-[#2F7A54] py-2.5 text-xs font-semibold tracking-wide rounded-lg transition-all">
+                    class="w-full mt-6 border border-brand-primary text-brand-primary dark:text-brand-primary dark:border-brand-primary hover:bg-brand-primary hover:text-white dark:hover:bg-brand-primary py-2.5 text-xs font-semibold tracking-wide rounded-lg transition-all">
                 Close
             </button>
         </div>

@@ -1,11 +1,13 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Welcome, {{ Auth::user()->name }}
-        </h2>
-    </x-slot>
+@extends('layouts.app')
 
-    <div class="max-w-7xl">
+@section('content')
+    <div class="max-w-7xl p-6">
+        <div class="mb-6">
+            <h2 class="font-semibold text-xl text-white leading-tight">
+                Welcome, {{ Auth::user()->name }}
+            </h2>
+        </div>
+
         @role('admin')
             <livewire:admin.dashboard-panel />
         @endrole
@@ -24,4 +26,4 @@
             </div>
         @endunlessrole
     </div>
-</x-app-layout>
+@endsection

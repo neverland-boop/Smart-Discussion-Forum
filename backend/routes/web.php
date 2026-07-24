@@ -23,7 +23,12 @@ Route::post('/logout', function () {
 // --- Protected Dashboard & Profile ---
 Route::middleware(['auth', 'verified', 'check.blacklist'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
-    Route::view('profile', 'profile')->name('profile');
+    
+    // User Settings (Profile, Password, Appearance)
+    Volt::route('settings', 'settings.profile')->name('settings.profile');
+    Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
+    Volt::route('settings/password', 'settings.password')->name('settings.password');
+    Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 });
 
 // --- Administrator Routes ---
@@ -32,7 +37,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Volt::route('/members', 'admin.members')->name('admin.members');
     
     // The new Settings Route
-    Volt::route('/settings', 'admin.settings')->name('admin.settings');
+    Volt::route('/admin/settings', 'admin.settings')->name('admin.settings');
 });
 
 // --- Student Routes (Protected by Blacklist) ---
