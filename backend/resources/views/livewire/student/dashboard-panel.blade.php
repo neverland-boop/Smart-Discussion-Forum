@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Group;
 use App\Models\Quiz;
 use App\Models\Post;
-use Carbon\Carbon;
 
 new class extends Component {
     // Stat Cards
@@ -19,17 +18,64 @@ new class extends Component {
     public $upcomingQuizzes = [];
     public $recentActivities = [];
 
-    // Auto-Popup Variables
-    public $msUntilQuiz = 0;
-    public $nextQuizId = null;
-
     public function mount()
+    {
+        $this->loadDashboardState();
+        $this->checkForDueQuiz();
+    }
+
+    public function checkForDueQuiz(): void
     {
         $user = Auth::user();
 
-        // 1. Fetch My Groups (Using your current schema where user_id is in the groups table)
-        // If you create a pivot table later, change this to: $user->groups()->latest()->take(4)->get();
-        $this->myGroups = Group::where('user_id', $user->id)->latest()->take(4)->get();
+        if (! $user) {
+            return;
+        }
+
+        $groupIds = Group::whereHas('members', function ($query) use ($user) {
+            $query->where('users.id', $user->id);
+        })->pluck('id');
+
+        if ($groupIds->isEmpty()) {
+            return;
+        }
+
+        $dueQuiz = Quiz::whereIn('group_id', $groupIds)
+            ->where('status', 'PUBLISHED')
+            ->whereNotNull('start_time')
+            ->where('start_time', '<=', now())
+            ->whereDoesntHave('attempts', function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->whereNotNull('submitted_at');
+            })
+            ->orderBy('start_time', 'asc')
+            ->first();
+
+        if ($dueQuiz) {
+            $this->redirect(route('quiz.attempt', ['id' => $dueQuiz->id]), navigate: true);
+        }
+    }
+
+    private function loadDashboardState(): void
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            $this->myGroups = collect([]);
+            $this->activeGroupsCount = 0;
+            $this->pendingQuizzesCount = 0;
+            $this->upcomingQuizzes = collect([]);
+            $this->avgScore = 0;
+            $this->unreadMsgsCount = 0;
+            $this->recentActivities = collect([]);
+
+            return;
+        }
+
+        // 1. Fetch My Groups from the existing group_members relationship.
+        $this->myGroups = Group::whereHas('members', function ($query) use ($user) {
+            $query->where('users.id', $user->id);
+        })->latest()->take(4)->get();
         $this->activeGroupsCount = $this->myGroups->count();
 
         // 2. Fetch Pending Quizzes
@@ -49,15 +95,6 @@ new class extends Component {
                 ->orderBy('start_time', 'asc')
                 ->take(3)
                 ->get();
-
-            // === QUIZ POPUP LOGIC ===
-            // Find the most immediate upcoming quiz that has a scheduled start time
-            $nextQuiz = $this->upcomingQuizzes->firstWhere('start_time', '!=', null);
-            if ($nextQuiz) {
-                $this->nextQuizId = $nextQuiz->id;
-                // diffInMilliseconds calculates the exact time left. (false allows negative numbers if it already started)
-                $this->msUntilQuiz = now()->diffInMilliseconds(Carbon::parse($nextQuiz->start_time), false);
-            }
         }
 
         // 3. Average Score (Calculated directly from your 'marks' table)
@@ -77,7 +114,7 @@ new class extends Component {
     }
 }; ?>
 
-<div class="p-4 sm:p-6 space-y-6 sm:space-y-8 min-h-screen bg-[#F7F5EE] text-zinc-900">
+<div wire:poll.15s="checkForDueQuiz" class="p-4 sm:p-6 space-y-6 sm:space-y-8 min-h-screen bg-[#F7F5EE] text-zinc-900">
 
     <!-- Page Header & Action -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -204,39 +241,5 @@ new class extends Component {
             @endforelse
         </div>
     </div>
-    
-    <livewire:student.join-group-modal />
-
-    <!-- === FULL SCREEN QUIZ POP-UP LOGIC === -->
-    @if($nextQuizId)
-        <div id="quiz-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 99999; justify-content: center; align-items: center;">
-            <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 450px; box-shadow: 0 15px 30px rgba(0,0,0,0.5);">
-                <h2 style="color: #e3342f; font-size: 22px; font-weight: bold; margin-bottom: 10px;">🚨 Quiz is Now Open! 🚨</h2>
-                <p style="color: #4a5568; font-size: 15px; margin-bottom: 20px;">The scheduled time has arrived. You must enter the quiz now.</p>
-                
-                <a href="/student/quizzes/{{ $nextQuizId }}" 
-                   style="background: #e3342f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                   Take Quiz Now
-                </a>
-            </div>
-        </div>
-
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const msUntilQuiz = @json($msUntilQuiz);
-
-                // If a quiz is scheduled in the future (within 24 hours)
-                if (msUntilQuiz > 0 && msUntilQuiz < 86400000) {
-                    setTimeout(() => {
-                        // Instantly force the pop-up to show on screen when time hits zero
-                        document.getElementById('quiz-popup').style.display = 'flex';
-                    }, msUntilQuiz);
-                } 
-                // If the user loads the page *after* the quiz has already started (within the last hour)
-                else if (msUntilQuiz <= 0 && msUntilQuiz > -3600000) {
-                    document.getElementById('quiz-popup').style.display = 'flex';
-                }
-            });
-        </script>
-    @endif
+        <livewire:student.join-group-modal />
 </div>
