@@ -2,9 +2,10 @@
 
 use App\Livewire\Actions\Logout;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-new class extends Component {
+new #[Layout('layouts.app')] class extends Component {
     public string $password = '';
 
     /**
@@ -24,8 +25,8 @@ new class extends Component {
 
 <section class="mt-10 space-y-6">
     <div class="relative mb-5">
-        <flux:heading>{{ __('Delete Account') }}</flux:heading>
-        <flux:subheading>{{ __('Delete your account and all of its resources') }}</flux:subheading>
+        <h3 class="text-lg font-bold text-white">{{ __('Delete Account') }}</h3>
+        <p class="text-slate-300 text-sm">{{ __('Delete your account and all of its resources') }}</p>
     </div>
 
     <flux:modal.trigger name="confirm-user-deletion">
@@ -34,14 +35,14 @@ new class extends Component {
         </flux:button>
     </flux:modal.trigger>
 
-    <flux:modal name="confirm-user-deletion" :show="$errors->isNotEmpty()" focusable class="max-w-lg">
+    <flux:modal name="confirm-user-deletion" :show="$errors->isNotEmpty()" focusable class="max-w-lg bg-slate-800">
         <form wire:submit="deleteUser" class="space-y-6">
             <div>
-                <flux:heading size="lg">{{ __('Are you sure you want to delete your account?') }}</flux:heading>
+                <h2 class="text-lg font-bold text-white">{{ __('Are you sure you want to delete your account?') }}</h2>
 
-                <flux:subheading>
+                <p class="text-slate-300 text-sm mt-2">
                     {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
-                </flux:subheading>
+                </p>
             </div>
 
             <flux:input wire:model="password" id="password" label="{{ __('Password') }}" type="password" name="password" />

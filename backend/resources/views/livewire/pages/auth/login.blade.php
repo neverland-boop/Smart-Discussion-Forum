@@ -53,13 +53,13 @@ $login = function () {
         <div class="flex items-center justify-between">
             <label for="remember" class="inline-flex items-center cursor-pointer select-none">
                 <input wire:model="form.remember" id="remember" type="checkbox"
-                    class="w-4 h-4 rounded-md dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-[#2F7A54] shadow-sm focus:ring-2 focus:ring-[#5CC98B] focus:ring-offset-1 dark:focus:ring-offset-gray-800 transition"
+                    class="w-4 h-4 rounded-md dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-brand-primary shadow-sm focus:ring-2 focus:ring-brand-primary focus:ring-offset-1 dark:focus:ring-offset-gray-800 transition"
                     name="remember">
                 <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
             </label>
 
             @if (Route::has('password.request'))
-                <a class="text-sm font-medium text-[#2F7A54] dark:text-[#5CC98B] hover:text-[#256242] dark:hover:text-[#4ab879] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5CC98B] dark:focus:ring-offset-gray-800 transition"
+                <a class="text-sm font-medium text-brand-primary dark:text-brand-primary hover:text-brand-primary-hover dark:hover:text-brand-primary-hover rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary dark:focus:ring-offset-gray-800 transition"
                     href="{{ route('password.request') }}" wire:navigate>
                     {{ __('Forgot your password?') }}
                 </a>
@@ -68,7 +68,7 @@ $login = function () {
 
         <!-- Styled Login Button -->
         <button type="submit"
-            class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#2F7A54] border border-transparent rounded-xl font-semibold text-sm text-white hover:bg-[#256242] focus:bg-[#256242] active:bg-[#1e4f36] focus:outline-none focus:ring-2 focus:ring-[#5CC98B] focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 shadow-sm hover:shadow-md">
+            class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-primary border border-transparent rounded-xl font-semibold text-sm text-white hover:bg-brand-primary-hover focus:bg-brand-primary-hover active:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 shadow-sm hover:shadow-md">
             {{ __('Log in') }}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="transition-transform group-hover:translate-x-0.5">
                 <path d="M5 12H19" stroke="white" stroke-width="1.8" stroke-linecap="round"/>

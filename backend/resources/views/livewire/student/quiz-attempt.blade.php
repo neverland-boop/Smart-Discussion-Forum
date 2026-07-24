@@ -113,10 +113,10 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
          x-data="quizAttempt({{ $timeRemaining }})">
         
         <!-- TOP NAVIGATION BAR -->
-        <header class="h-16 bg-green-800 flex items-center justify-between gap-3 px-4 sm:px-6 shadow-md z-20 shrink-0">
+        <header class="h-16 bg-brand-primary flex items-center justify-between gap-3 px-4 sm:px-6 shadow-md z-20 shrink-0">
             <div class="flex items-center gap-3">
                 <!-- Mobile Question Nav Toggle (three-line hamburger) -->
-                <button @click="qnavOpen = !qnavOpen" type="button" aria-label="Toggle question navigator" class="lg:hidden p-2 -ml-2 rounded-md text-white/90 hover:text-white hover:bg-green-900/50 transition">
+                <button @click="qnavOpen = !qnavOpen" type="button" aria-label="Toggle question navigator" class="lg:hidden p-2 -ml-2 rounded-md text-white/90 hover:text-white hover:bg-brand-dark/50 transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
@@ -135,11 +135,11 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
             <h1 class="text-lg font-bold tracking-wide hidden md:block truncate text-white">{{ $quiz->title }}</h1>
 
             <!-- Timer -->
-            <div class="flex items-center gap-2 bg-green-900/40 px-3 sm:px-4 py-1.5 rounded-full border border-green-600/50 shadow-inner shrink-0">
-                <svg class="w-4 h-4 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-2 bg-brand-dark/40 px-3 sm:px-4 py-1.5 rounded-full border border-brand-primary/50 shadow-inner shrink-0">
+                <svg class="w-4 h-4 text-brand-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                <span class="text-sm font-medium text-green-100 hidden sm:block">Time Remaining</span>
+                <span class="text-sm font-medium text-brand-soft hidden sm:block">Time Remaining</span>
                 <span class="font-mono font-bold text-white tracking-wider" x-text="formatTime(timeRemaining)">--:--:--</span>
             </div>
         </header>
@@ -167,8 +167,8 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
                                 wire:click="setQuestion({{ $index }})"
                                 @click="qnavOpen = false"
                                 class="h-10 rounded-md transition font-bold shadow-sm 
-                                {{ $currentQuestionIndex === $index ? 'ring-2 ring-green-700 ring-offset-2 ring-offset-white' : '' }}
-                                {{ $markedForReview[$question->id] ? 'bg-amber-500 text-white' : ($answers[$question->id] !== null ? 'bg-green-700 text-white' : 'bg-stone-100 text-slate-600 hover:bg-stone-200') }}">
+                                {{ $currentQuestionIndex === $index ? 'ring-2 ring-brand-primary ring-offset-2 ring-offset-white' : '' }}
+                                {{ $markedForReview[$question->id] ? 'bg-amber-500 text-white' : ($answers[$question->id] !== null ? 'bg-brand-primary text-white' : 'bg-stone-100 text-slate-600 hover:bg-stone-200') }}">
                                 {{ $index + 1 }}
                             </button>
                         @endforeach
@@ -177,7 +177,7 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
                     <!-- Legend -->
                     <div class="space-y-3 bg-stone-50 p-4 rounded-xl border border-stone-200">
                         <div class="flex items-center gap-3">
-                            <span class="w-4 h-4 rounded shadow-sm bg-green-700"></span>
+                            <span class="w-4 h-4 rounded shadow-sm bg-brand-primary"></span>
                             <span class="text-xs text-slate-600 font-semibold uppercase tracking-wide">Answered</span>
                         </div>
                         <div class="flex items-center gap-3">
@@ -212,7 +212,7 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
                         
                         <!-- Question Header -->
                         <div class="mb-10">
-                            <h3 class="text-green-700 font-bold text-sm tracking-widest uppercase mb-4">
+                            <h3 class="text-brand-primary font-bold text-sm tracking-widest uppercase mb-4">
                                 Question {{ $currentQuestionIndex + 1 }} of {{ count($questions) }}
                             </h3>
                             <p class="text-2xl text-slate-900 font-medium leading-relaxed">
@@ -231,12 +231,12 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
                             @if($options)
                                 @foreach($options as $key => $optionText)
                                     <label class="flex items-center gap-4 p-5 rounded-xl border transition cursor-pointer group shadow-sm
-                                        {{ ($answers[$currentQuestion->id] ?? null) === $key ? 'border-green-600 bg-green-50' : 'border-stone-200 bg-white hover:bg-stone-50 hover:border-green-400' }}">
+                                        {{ ($answers[$currentQuestion->id] ?? null) === $key ? 'border-brand-primary bg-brand-primary-soft' : 'border-stone-200 bg-white hover:bg-stone-50 hover:border-brand-primary' }}">
                                         
                                         <input type="radio" 
                                                wire:model.live="answers.{{ $currentQuestion->id }}" 
                                                value="{{ $key }}" 
-                                               class="w-5 h-5 text-green-700 bg-white border-stone-300 focus:ring-green-600 focus:ring-offset-white">
+                                               class="w-5 h-5 text-brand-primary bg-white border-stone-300 focus:ring-brand-primary focus:ring-offset-white">
                                         
                                         <span class="text-lg {{ ($answers[$currentQuestion->id] ?? null) === $key ? 'text-slate-900 font-medium' : 'text-slate-600 group-hover:text-slate-900' }}">
                                             {{ $key }}. {{ $optionText }}
@@ -259,7 +259,7 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
                             @if($currentQuestionIndex < count($questions) - 1)
                                 <button 
                                     wire:click="setQuestion({{ $currentQuestionIndex + 1 }})"
-                                    class="px-8 py-3 rounded-lg bg-green-700 text-white font-bold hover:bg-green-600 transition shadow-lg shadow-green-900/10 flex items-center gap-2">
+                                    class="px-8 py-3 rounded-lg bg-brand-primary text-white font-bold hover:bg-brand-primary-hover transition shadow-lg shadow-green-900/10 flex items-center gap-2">
                                     Next
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </button>
@@ -270,7 +270,7 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
                         <div class="mt-6 flex justify-end">
                             <button @click="submitQuiz()" 
                                     type="button" 
-                                    class="w-full md:w-auto px-10 py-3.5 rounded-lg bg-green-800 text-white font-extrabold tracking-wide hover:bg-green-700 transition shadow-xl flex items-center justify-center gap-2 border border-green-600">
+                                    class="w-full md:w-auto px-10 py-3.5 rounded-lg bg-brand-dark text-white font-extrabold tracking-wide hover:bg-brand-primary transition shadow-xl flex items-center justify-center gap-2 border border-brand-primary">
                                 <svg class="w-5 h-5 transform -rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                                 Submit Quiz
                             </button>
@@ -301,7 +301,7 @@ public function submitAttempt(QuizService $quizService, $autoSubmitted = false)
         <div class="flex gap-3">
             <button @click="showModal = false" class="flex-1 px-4 py-2 bg-stone-100 text-slate-700 rounded-lg hover:bg-stone-200">Cancel</button>
             <button @click="@this.call('submitAttempt', false); showModal = false" 
-                    class="flex-1 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-600">
+                    class="flex-1 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary-hover">
                 Yes, Submit
             </button>
         </div>

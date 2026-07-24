@@ -33,7 +33,7 @@ new #[Layout('layouts.app')] class extends Component {
 
     <!-- Flash Message for successful submission -->
     @if (session()->has('success'))
-        <div class="mb-8 p-4 bg-green-50 border border-green-200 rounded-xl text-[#2F7A54] font-medium flex items-center gap-3">
+        <div class="mb-8 p-4 bg-brand-primary-soft border border-brand-soft rounded-xl text-brand-primary font-medium flex items-center gap-3">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             {{ session('success') }}
         </div>
@@ -47,7 +47,7 @@ new #[Layout('layouts.app')] class extends Component {
         </div>
         <div class="bg-white border border-zinc-200 p-6 rounded-xl shadow-sm">
             <div class="text-zinc-500 text-sm font-semibold uppercase tracking-wider mb-2">Average Score</div>
-            <div class="text-4xl font-bold text-[#2F7A54]">{{ $stats['average_score'] }}</div>
+            <div class="text-4xl font-bold text-brand-primary">{{ $stats['average_score'] }}</div>
         </div>
         <div class="bg-white border border-zinc-200 p-6 rounded-xl shadow-sm">
             <div class="text-zinc-500 text-sm font-semibold uppercase tracking-wider mb-2">Pending Reviews</div>
@@ -109,7 +109,7 @@ new #[Layout('layouts.app')] class extends Component {
                                 Completed
                             </button>
                         @else
-                            <a href="{{ route('quiz.attempt', ['id' => $quiz->id]) }}" class="px-6 py-2 bg-[#2F7A54] hover:bg-[#256242] text-white font-semibold rounded-lg shadow-sm transition">
+                            <a href="{{ route('quiz.attempt', ['id' => $quiz->id]) }}" class="px-6 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white font-semibold rounded-lg shadow-sm transition">
                                 Start Quiz
                             </a>
                         @endif
@@ -130,7 +130,7 @@ new #[Layout('layouts.app')] class extends Component {
             <!-- Dynamic Recent Results Section -->
             <div class="bg-white border border-zinc-200 p-6 rounded-xl shadow-sm">
                 <h3 class="text-zinc-900 font-bold mb-4 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-[#2F7A54]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     Recent Results
                 </h3>
                 
@@ -149,7 +149,7 @@ new #[Layout('layouts.app')] class extends Component {
                                     </div>
                                 </div>
                                 <div class="px-2.5 py-1 rounded-md font-bold text-sm border 
-                                    {{ $result->score >= 75 ? 'bg-green-50 text-[#2F7A54] border-green-200' : 
+                                    {{ $result->score >= 75 ? 'bg-brand-primary-soft text-brand-primary border-brand-soft' : 
                                       ($result->score >= 50 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 
                                       'bg-red-50 text-red-600 border-red-200') }}">
                                     {{ $result->score }}%

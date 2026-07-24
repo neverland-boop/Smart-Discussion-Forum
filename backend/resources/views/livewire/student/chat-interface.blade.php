@@ -1,4 +1,5 @@
 <?php
+use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use Livewire\Attributes\Validate;
 use Livewire\Attributes\On; 
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-new class extends Component {
+new #[Layout('layouts.app')] class extends Component {
     use WithFileUploads;
 
     public $expandedGroup = null; 
@@ -79,7 +80,7 @@ new class extends Component {
         
         $this->validate([
             'newMessage' => 'required_without:attachment|string|max:2000',
-            'attachment' => 'nullable|file|max:10240', // Max 10MB
+            'attachment' => ['nullable', 'file', 'max:10240', 'mimes:jpg,jpeg,png,webp,pdf,doc,docx,csv,xlsx,txt'],
         ]);
 
         $attachmentPath = null;
@@ -98,8 +99,7 @@ new class extends Component {
             auth()->user()->pardon();
         }
 
-        $this->newMessage = '';
-        $this->attachment = null;
+        $this->reset(['newMessage', 'attachment']);
         $this->dispatch('message-sent'); 
     }
 
@@ -269,7 +269,7 @@ new class extends Component {
                 <h2 class="text-lg font-bold text-zinc-900 truncate">Your Groups</h2>
                 <div class="flex items-center gap-1">
                     <x-modal-trigger>
-                        <button class="p-1.5 bg-green-50 text-[#2F7A54] hover:bg-[#2F7A54] hover:text-white rounded-md transition" title="Create or Join Group">
+                        <button class="p-1.5 bg-brand-primary-soft text-brand-primary hover:bg-brand-primary hover:text-white rounded-md transition" title="Create or Join Group">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         </button>
                     </x-modal-trigger>
@@ -305,14 +305,14 @@ new class extends Component {
                             @if($expandedGroup === $group->id)
                                 <div class="mt-1 mb-2 ml-4 space-y-1 border-l-2 border-zinc-200 pl-2">
                                     @foreach($group->topics as $topic) 
-                                        <button wire:click="selectTopic({{ $topic->id }})" class="w-full flex items-center justify-between p-2 rounded-lg text-sm transition {{ $activeTopic == $topic->id ? 'bg-[#2F7A54] text-white shadow-md' : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900' }}">
+                                        <button wire:click="selectTopic({{ $topic->id }})" class="w-full flex items-center justify-between p-2 rounded-lg text-sm transition {{ $activeTopic == $topic->id ? 'bg-brand-primary text-white shadow-md' : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900' }}">
                                             <span class="truncate pr-2">
                                                 @if($topic->is_private) 🔒 @endif # {{ $topic->title }}
                                             </span>
                                         </button>
                                     @endforeach
                                     
-                                    <button wire:click="openAddTopicModal({{ $group->id }})" class="w-full flex items-center gap-2 p-2 rounded-lg text-sm text-zinc-400 hover:text-[#2F7A54] hover:bg-zinc-100 transition mt-1">
+                                    <button wire:click="openAddTopicModal({{ $group->id }})" class="w-full flex items-center gap-2 p-2 rounded-lg text-sm text-zinc-400 hover:text-brand-primary hover:bg-zinc-100 transition mt-1">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                                         Add Topic
                                     </button>
@@ -328,11 +328,11 @@ new class extends Component {
             @else
                 <div class="flex flex-col items-center py-4 space-y-4">
                     @foreach($groups as $group)
-                        <button wire:click="$set('showLeftSidebar', true); toggleGroup({{ $group->id }})" class="w-10 h-10 rounded-xl bg-zinc-100 hover:bg-[#2F7A54] flex items-center justify-center text-sm font-bold text-zinc-700 hover:text-white transition shadow-sm group relative" title="{{ $group->name }}">
+                        <button wire:click="$set('showLeftSidebar', true); toggleGroup({{ $group->id }})" class="w-10 h-10 rounded-xl bg-zinc-100 hover:bg-brand-primary flex items-center justify-center text-sm font-bold text-zinc-700 hover:text-white transition shadow-sm group relative" title="{{ $group->name }}">
                             {{ substr($group->name, 0, 1) }}
                         </button>
                     @endforeach
-                    <button wire:click="$set('showLeftSidebar', true)" class="w-10 h-10 rounded-xl border border-dashed border-zinc-300 text-zinc-400 hover:border-[#2F7A54] hover:text-[#2F7A54] flex items-center justify-center transition" title="Add Group">
+                    <button wire:click="$set('showLeftSidebar', true)" class="w-10 h-10 rounded-xl border border-dashed border-zinc-300 text-zinc-400 hover:border-brand-primary hover:text-brand-primary flex items-center justify-center transition" title="Add Group">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     </button>
                 </div>
@@ -444,7 +444,7 @@ new class extends Component {
                                 @endif
 
                                 <div class="flex items-center gap-2 {{ $message['is_mine'] ? 'flex-row-reverse' : 'flex-row' }}">
-                                    <div class="p-3 rounded-2xl shadow-sm {{ $message['is_mine'] ? 'bg-[#2F7A54] text-white rounded-tr-none' : 'bg-white text-zinc-800 border border-zinc-200 rounded-tl-none' }}">
+                                    <div class="p-3 rounded-2xl shadow-sm {{ $message['is_mine'] ? 'bg-brand-primary text-white rounded-tr-none' : 'bg-white text-zinc-800 border border-zinc-200 rounded-tl-none' }}">
                                         @if(!empty($message['attachment']))
                                             <div class="mb-2">
                                                 <a href="{{ asset('storage/' . $message['attachment']) }}" target="_blank" class="flex items-center gap-2 text-sm bg-black/10 p-2 rounded-lg hover:bg-black/20 transition w-fit">
@@ -507,11 +507,11 @@ new class extends Component {
                     <form wire:submit="sendMessage" class="flex items-center gap-3 max-w-4xl mx-auto" wire:key="chat-input-form">
                         
                         <input type="file" id="file-upload" wire:model="attachment" class="hidden">
-                        <label for="file-upload" class="cursor-pointer text-zinc-400 hover:text-[#2F7A54] p-2 rounded-full hover:bg-zinc-100 transition" title="Attach File">
+                        <label for="file-upload" class="cursor-pointer text-zinc-400 hover:text-brand-primary p-2 rounded-full hover:bg-zinc-100 transition" title="Attach File">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
                         </label>
 
-                        <div wire:loading wire:target="attachment" class="text-[#2F7A54]">
+                        <div wire:loading wire:target="attachment" class="text-brand-primary">
                             <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </div>
 
@@ -519,7 +519,7 @@ new class extends Component {
                             type="text" 
                             wire:model="newMessage" 
                             placeholder="Type a message..." 
-                            class="flex-1 bg-zinc-50 border border-zinc-300 text-zinc-900 rounded-full px-5 py-3 focus:outline-none focus:border-[#2F7A54] shadow-inner placeholder-zinc-400 transition-colors"
+                            class="flex-1 bg-zinc-50 border border-zinc-300 text-zinc-900 rounded-full px-5 py-3 focus:outline-none focus:border-brand-primary shadow-inner placeholder-zinc-400 transition-colors"
                             autocomplete="off"
                             wire:key="chat-text-input" 
                             wire:loading.attr="disabled"
@@ -528,11 +528,16 @@ new class extends Component {
 
                         <button 
                             type="submit" 
-                            class="bg-[#2F7A54] hover:bg-[#256242] text-white p-3 rounded-full transition shadow-md focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center h-12 w-12 shrink-0"
+                            class="bg-brand-primary hover:bg-brand-primary-hover text-white p-3 rounded-full transition shadow-md focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center h-12 w-12 shrink-0"
+                            wire:target="sendMessage"
                             wire:loading.attr="disabled"
                         >
-                            <svg wire:loading.remove wire:target="sendMessage" class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                            <svg wire:loading wire:target="sendMessage" class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span wire:loading.remove wire:target="sendMessage" class="inline-flex">
+                                <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                            </span>
+                            <span wire:loading wire:target="sendMessage" class="inline-flex">
+                                <svg class="animate-spin w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            </span>
                         </button>
                     </form>
                     @error('newMessage') <span class="text-red-500 text-xs ml-14 mt-1 block">{{ $message }}</span> @enderror
@@ -564,7 +569,7 @@ new class extends Component {
                                                 </div>
                                                 <span class="text-sm font-medium text-zinc-800 truncate">{{ $applicant->name }}</span>
                                             </div>
-                                            <button wire:click="approveParticipant({{ $topicModel->id }}, {{ $applicant->id }})" class="shrink-0 text-xs bg-[#2F7A54] hover:bg-[#256242] text-white px-3 py-1.5 rounded-md transition font-medium">
+                                            <button wire:click="approveParticipant({{ $topicModel->id }}, {{ $applicant->id }})" class="shrink-0 text-xs bg-brand-primary hover:bg-brand-primary-hover text-white px-3 py-1.5 rounded-md transition font-medium">
                                                 Approve
                                             </button>
                                         </div>
@@ -615,7 +620,7 @@ new class extends Component {
                     <p class="text-zinc-500 mb-6 max-w-md">This topic is private. You need approval from the author to view or send messages.</p>
                     
                     @if(!$participant)
-                        <button wire:click="requestAccess({{ $activeTopic }})" class="bg-[#2F7A54] hover:bg-[#256242] px-6 py-3 rounded-lg text-white font-medium transition shadow-md">
+                        <button wire:click="requestAccess({{ $activeTopic }})" class="bg-brand-primary hover:bg-brand-primary-hover px-6 py-3 rounded-lg text-white font-medium transition shadow-md">
                             Request Access
                         </button>
                     @else
@@ -631,7 +636,7 @@ new class extends Component {
             <!-- ZERO-DATA STATE -->
             <div class="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 bg-zinc-50">
                 <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-md border border-zinc-200">
-                    <svg class="w-10 h-10 text-[#2F7A54]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
+                    <svg class="w-10 h-10 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2v4l.586-.586z"></path></svg>
                 </div>
                 
                 <h2 class="text-2xl sm:text-3xl font-bold text-zinc-900 mb-2 text-center">Welcome to Discussions</h2>
@@ -640,7 +645,7 @@ new class extends Component {
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
                     <x-modal-trigger>
                         <button class="flex flex-col items-center p-6 w-full bg-white border border-zinc-200 rounded-2xl hover:border-[#2F7A54] hover:bg-zinc-50 transition group text-center cursor-pointer shadow-sm">
-                            <div class="w-12 h-12 bg-green-50 text-[#2F7A54] rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg></div>
+                            <div class="w-12 h-12 bg-brand-primary-soft text-brand-primary rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg></div>
                             <h3 class="text-zinc-900 font-bold mb-2">Create a Group</h3>
                             <p class="text-xs text-zinc-500">Start a new study circle, define your topics, and manage members.</p>
                         </button>
@@ -671,18 +676,18 @@ new class extends Component {
             
             <div class="mb-4">
                 <label class="block text-zinc-500 text-sm mb-2">Topic Title</label>
-                <input type="text" wire:model="newTopicTitle" class="w-full p-3 bg-zinc-50 border border-zinc-300 text-zinc-900 rounded-lg focus:outline-none focus:border-[#2F7A54]" placeholder="e.g., Assignment 1 Discussion">
+                <input type="text" wire:model="newTopicTitle" class="w-full p-3 bg-zinc-50 border border-zinc-300 text-zinc-900 rounded-lg focus:outline-none focus:border-brand-primary" placeholder="e.g., Assignment 1 Discussion">
                 @error('newTopicTitle') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
             </div>
 
             <div class="mb-4">
                 <label class="block text-zinc-500 text-sm mb-2">Description</label>
-                <textarea wire:model="newTopicDescription" rows="3" class="w-full p-3 bg-zinc-50 border border-zinc-300 text-zinc-900 rounded-lg focus:outline-none focus:border-[#2F7A54] resize-none" placeholder="Briefly describe what this topic is about..."></textarea>
+                <textarea wire:model="newTopicDescription" rows="3" class="w-full p-3 bg-zinc-50 border border-zinc-300 text-zinc-900 rounded-lg focus:outline-none focus:border-brand-primary resize-none" placeholder="Briefly describe what this topic is about..."></textarea>
                 @error('newTopicDescription') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
             </div>
 
             <div class="mb-6 flex items-center">
-                <input type="checkbox" wire:model="isPrivate" id="isPrivateCheckbox" class="w-4 h-4 text-[#2F7A54] bg-white border-zinc-300 rounded focus:ring-[#5CC98B] focus:ring-2 cursor-pointer">
+                <input type="checkbox" wire:model="isPrivate" id="isPrivateCheckbox" class="w-4 h-4 text-brand-primary bg-white border-zinc-300 rounded focus:ring-brand-primary focus:ring-2 cursor-pointer">
                 <label for="isPrivateCheckbox" class="ml-2 text-sm text-zinc-600 cursor-pointer">
                     Make this topic private (Requires approval to join)
                 </label>
@@ -690,7 +695,7 @@ new class extends Component {
 
             <div class="flex justify-end gap-3 mt-2">
                 <button wire:click="$set('showTopicModal', false)" class="px-4 py-2 text-zinc-500 hover:text-zinc-900 transition">Cancel</button>
-                <button wire:click="saveTopic" class="px-4 py-2 bg-[#2F7A54] hover:bg-[#256242] text-white rounded-lg transition">Save Topic</button>
+                <button wire:click="saveTopic" class="px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white rounded-lg transition">Save Topic</button>
             </div>
         </div>
     </div>

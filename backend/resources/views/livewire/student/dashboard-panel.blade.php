@@ -119,7 +119,7 @@ new class extends Component {
     <!-- Page Header & Action -->
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h2 class="text-xl sm:text-2xl font-bold tracking-wide text-zinc-900">Dashboard Overview</h2>
-        <button wire:click="$dispatch('open-join-modal')" class="w-full sm:w-auto justify-center bg-[#2F7A54] hover:bg-[#256242] text-white px-4 py-2 rounded-lg font-semibold flex items-center transition-colors shadow-sm">
+        <button wire:click="$dispatch('open-join-modal')" class="w-full sm:w-auto justify-center bg-brand-primary hover:bg-brand-primary-hover text-white px-4 py-2 rounded-lg font-semibold flex items-center transition-colors shadow-sm">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Join a Group
         </button>
@@ -140,7 +140,7 @@ new class extends Component {
         <div class="bg-white border border-zinc-200 p-6 rounded-xl shadow-sm flex flex-col justify-between">
             <div class="flex justify-between items-center text-zinc-500">
                 <span class="text-xs font-semibold uppercase tracking-wider">Pending Quizzes</span>
-                <svg class="w-4 h-4 text-[#2F7A54]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
             </div>
             <p class="text-3xl font-bold text-zinc-900 mt-4">{{ $pendingQuizzesCount }}</p>
         </div>
@@ -210,7 +210,7 @@ new class extends Component {
                             <span class="text-xs text-zinc-500">
                                 {{ $quiz->start_time ? \Carbon\Carbon::parse($quiz->start_time)->diffForHumans() : 'No start time set' }}
                             </span>
-                            <span class="text-xs bg-green-50 text-[#2F7A54] border border-green-200 px-2 py-0.5 rounded-full font-medium">Pending</span>
+                            <span class="text-xs bg-brand-primary-soft text-brand-primary border border-brand-soft px-2 py-0.5 rounded-full font-medium">Pending</span>
                         </div>
                     </div>
                 @empty
@@ -228,7 +228,7 @@ new class extends Component {
         <div class="space-y-4">
             @forelse($recentActivities as $activity)
                 <div class="flex items-start gap-4">
-                    <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-[#2F7A54] shrink-0">
+                    <div class="w-8 h-8 rounded-full bg-brand-primary-soft flex items-center justify-center text-brand-primary shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     </div>
                     <div>

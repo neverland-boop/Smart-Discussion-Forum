@@ -55,33 +55,33 @@ new class extends Component {
         <!-- Name Input -->
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
-            <input wire:model="name" type="text" placeholder="e.g. Dr. John Doe" class="w-full p-2.5 bg-slate-900 border border-slate-600 rounded-lg text-white focus:ring-green-500 focus:border-green-500 transition-colors">
+            <input wire:model="name" type="text" placeholder="e.g. Dr. John Doe" class="w-full p-2.5 bg-slate-900 border border-slate-600 rounded-lg text-white focus:ring-brand-primary focus:border-brand-primary transition-colors">
             @error('name') <span class="text-red-400 text-xs mt-1 block">{{ $message }}</span> @enderror
         </div>
 
         <!-- Email Input -->
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
-            <input wire:model="email" type="email" placeholder="lecturer@university.edu" class="w-full p-2.5 bg-slate-900 border border-slate-600 rounded-lg text-white focus:ring-green-500 focus:border-green-500 transition-colors">
+            <input wire:model="email" type="email" placeholder="lecturer@university.edu" class="w-full p-2.5 bg-slate-900 border border-slate-600 rounded-lg text-white focus:ring-brand-primary focus:border-brand-primary transition-colors">
             @error('email') <span class="text-red-400 text-xs mt-1 block">{{ $message }}</span> @enderror
         </div>
 
         <!-- Password Input -->
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Password</label>
-            <input wire:model="password" type="password" placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-600 rounded-lg text-white focus:ring-green-500 focus:border-green-500 transition-colors">
+            <input wire:model="password" type="password" placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-600 rounded-lg text-white focus:ring-brand-primary focus:border-brand-primary transition-colors">
             @error('password') <span class="text-red-400 text-xs mt-1 block">{{ $message }}</span> @enderror
         </div>
 
         <!-- Confirm Password Input -->
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1">Confirm Password</label>
-            <input wire:model="password_confirmation" type="password" placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-600 rounded-lg text-white focus:ring-green-500 focus:border-green-500 transition-colors">
+            <input wire:model="password_confirmation" type="password" placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-600 rounded-lg text-white focus:ring-brand-primary focus:border-brand-primary transition-colors">
         </div>
         
         <!-- Submit Button -->
         <div class="pt-4">
-            <button type="submit" class="w-full bg-green-600 hover:bg-green-500 py-3 rounded-lg font-bold transition flex justify-center items-center shadow-lg" wire:loading.attr="disabled">
+            <button type="submit" class="w-full bg-brand-primary hover:bg-brand-primary-hover py-3 rounded-lg font-bold transition flex justify-center items-center shadow-lg" wire:loading.attr="disabled">
                 <span wire:loading.remove wire:target="register">Register Lecturer</span>
                 <svg wire:loading wire:target="register" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             </button>

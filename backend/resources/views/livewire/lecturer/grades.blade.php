@@ -7,7 +7,7 @@ use App\Models\Quiz;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-new #[Layout('components.layouts.app')] class extends Component {
+new #[Layout('layouts.app')] class extends Component {
     use WithPagination;
 
     public $groups = [];
@@ -241,7 +241,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 bg-zinc-50 dark:bg-zinc-950 min-h-screen text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6 min-h-screen text-zinc-900 dark:text-zinc-100 transition-colors duration-200">
     
     <!-- Header Section & Global Controls Bar -->
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-2xl shadow-sm">

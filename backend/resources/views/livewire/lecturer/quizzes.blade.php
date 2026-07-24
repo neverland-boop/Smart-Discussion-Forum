@@ -6,7 +6,7 @@ use App\Models\Quiz;
 use App\Services\QuizService;
 use Illuminate\Support\Facades\Auth;
 
-new #[Layout('components.layouts.app')] class extends Component {
+new #[Layout('layouts.app')] class extends Component {
     // Quiz Setup State
     public string $title = '';
     public string $description = '';
@@ -115,7 +115,7 @@ new #[Layout('components.layouts.app')] class extends Component {
     }
 }; ?>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 bg-zinc-50 min-h-screen text-zinc-900 font-sans">
+<div class="w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6 min-h-screen text-zinc-900 font-sans">
     
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-zinc-200 p-6 rounded-2xl shadow-sm">

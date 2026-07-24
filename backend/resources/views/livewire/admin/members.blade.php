@@ -1,10 +1,11 @@
 <?php
 
+use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 use App\Models\User;
 use App\Models\Report;
 
-new class extends Component {
+new #[Layout('layouts.app')] class extends Component {
     public $activeTab = 'members';
 
     public function with()
@@ -122,17 +123,17 @@ new class extends Component {
     <div class="flex overflow-x-auto border-b border-gray-200 mb-6 no-scrollbar">
         <button @click="activeTab = 'members'" 
                 class="px-6 py-3 border-b-2 font-medium text-sm transition whitespace-nowrap"
-                :class="activeTab === 'members' ? 'border-green-600 text-green-600' : 'text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300'">
+                :class="activeTab === 'members' ? 'border-brand-primary text-brand-primary' : 'text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300'">
             Members
         </button>
         <button @click="activeTab = 'lecturers'" 
                 class="px-6 py-3 border-b-2 font-medium text-sm transition whitespace-nowrap"
-                :class="activeTab === 'lecturers' ? 'border-green-600 text-green-600' : 'text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300'">
+                :class="activeTab === 'lecturers' ? 'border-brand-primary text-brand-primary' : 'text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300'">
             Lecturers
         </button>
         <button @click="activeTab = 'moderation'" 
                 class="px-6 py-3 border-b-2 font-medium text-sm transition whitespace-nowrap flex items-center gap-2"
-                :class="activeTab === 'moderation' ? 'border-green-600 text-green-600' : 'text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300'">
+                :class="activeTab === 'moderation' ? 'border-brand-primary text-brand-primary' : 'text-gray-500 border-transparent hover:text-gray-800 hover:border-gray-300'">
             Moderation 
             @if($reports->count() > 0)
                 <span class="bg-red-100 text-red-600 py-0.5 px-2 rounded-full text-xs font-bold">{{ $reports->count() }}</span>
@@ -158,7 +159,7 @@ new class extends Component {
                             <tr class="hover:bg-gray-50/80 transition duration-150" wire:key="user-{{ $user->id }}">
                                 <td class="p-4 sm:px-6 font-medium text-gray-900 whitespace-nowrap">{{ $user->name }}</td>
                                 <td class="p-4 sm:px-6 whitespace-nowrap">
-                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-md {{ $user->status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                    <span class="px-2.5 py-1 text-xs font-semibold rounded-md {{ $user->status === 'ACTIVE' ? 'bg-brand-primary-soft text-brand-primary' : 'bg-red-100 text-red-700' }}">
                                         {{ $user->status }}
                                     </span>
                                 </td>
@@ -172,7 +173,7 @@ new class extends Component {
                                         <button wire:click="issueWarning({{ $user->id }})" class="text-orange-600 hover:text-orange-700 text-sm font-medium transition">Warn</button>
                                         <button wire:click="manualSuspend({{ $user->id }})" class="text-red-600 hover:text-red-700 text-sm font-medium transition">Suspend</button>
                                     @else
-                                        <button wire:click="pardon({{ $user->id }})" class="text-green-600 hover:text-green-700 text-sm font-bold transition">Pardon</button>
+                                        <button wire:click="pardon({{ $user->id }})" class="text-brand-primary hover:text-brand-primary-hover text-sm font-bold transition">Pardon</button>
                                     @endif
                                     
                                     <!-- Delete Button (Trash Icon) -->
@@ -202,7 +203,7 @@ new class extends Component {
     <div x-show="activeTab === 'lecturers'" x-cloak x-data="{ showModal: false }">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h2 class="text-lg font-bold text-gray-900">Faculty Members</h2>
-            <button @click="showModal = true" class="bg-green-600 px-5 py-2.5 rounded-xl text-white text-sm font-medium hover:bg-green-700 transition shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+            <button @click="showModal = true" class="bg-brand-primary px-5 py-2.5 rounded-xl text-white text-sm font-medium hover:bg-brand-primary-hover transition shadow-sm focus:ring-2 focus:ring-brand-primary focus:ring-offset-2">
                 + Add Lecturer
             </button>
         </div>
@@ -267,7 +268,7 @@ new class extends Component {
                             <tr>
                                 <td colspan="3" class="p-10 text-center">
                                     <div class="flex flex-col items-center justify-center text-gray-400">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mb-3 text-green-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mb-3 text-brand-soft">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         <p class="text-sm font-medium text-gray-500">No flags to review.</p>

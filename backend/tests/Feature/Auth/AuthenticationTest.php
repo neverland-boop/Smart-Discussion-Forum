@@ -52,7 +52,8 @@ test('navigation menu can be rendered', function () {
 
     $response
         ->assertOk()
-        ->assertSeeVolt('layout.navigation');
+        ->assertSee('SMART DISCUSSION')
+        ->assertSee('Dashboard');
 });
 
 test('users can logout', function () {
@@ -60,12 +61,9 @@ test('users can logout', function () {
 
     $this->actingAs($user);
 
-    $component = Volt::test('layout.navigation');
+    $response = $this->post('/logout');
 
-    $component->call('logout');
-
-    $component
-        ->assertHasNoErrors()
+    $response
         ->assertRedirect('/');
 
     $this->assertGuest();
